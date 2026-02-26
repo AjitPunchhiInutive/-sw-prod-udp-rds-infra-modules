@@ -22,35 +22,6 @@ resource "google_project_service" "self" {
     depends_on                 = [null_resource.self ]
 }
 
-resource "google_project_service_identity" "self" {
-    for_each   = {for v in local.project_kms_supported_serviceagents: v.key => v}
-    provider   = google-beta
-    project    = google_project.self[each.value.project_name].project_id
-    service    = each.value.service
-    depends_on = [google_project_service.self]
-}
-
-# module "project_logging_metrics" {
-#     for_each                                = local.project_objects
-#     source                                  = "../../logging-metrics"
-#     project_id                              = google_project.self[each.value.project_name].project_id
-#     default_logging_metrics_create          = each.value.default_logging_metrics_create
-#     additional_user_defined_logging_metrics = each.value.additional_user_defined_logging_metrics
-#     depends_on                              = [google_project_service.self]
-# }
-
-# module "project_default_customer_managed_keyring" {
-#     for_each                       = local.project_objects
-#     source                         = "../../customer-managed-key"
-#     project_id                     = google_project.self[each.value.project_name].project_id
-#     project_number                 = google_project.self[each.value.project_name].number
-#     default_region                 = each.value.location
-#     enable_default_global_cmk      = each.value.enable_default_global_cmk
-#     cmk_encrypterdecrypter_members = each.value.default_cmk_encrypterdecrypter_members_list
-#     labels                         = each.value.labels
-#     depends_on                     = [google_project_service_identity.self]   
-# }
-
 resource "google_project_organization_policy" "self" {
     for_each   = {for v in local.project_policies_boolean: v.key => v}
     project    = google_project.self[each.value.project_name].project_id
@@ -124,12 +95,6 @@ resource "google_project_organization_policy" "self_list" {
     }
 }
 
-resource "google_compute_shared_vpc_host_project" "self" {
-  for_each   = {for k,v in local.project_objects: k => v if v.shared_vpc_host_config}    
-  project    = google_project.self[each.value.project_name].project_id
-  depends_on = [google_project_service.self]
-}
-
 resource "null_resource" "self" {
   depends_on = [google_project_organization_policy.self_list]
 
@@ -138,37 +103,18 @@ resource "null_resource" "self" {
   }
 }
 
-resource "google_compute_shared_vpc_service_project" "self" {
-  for_each        = {for k,v in local.project_objects: k => v if v.shared_vpc_service_config.attach}
-  host_project    = each.value.shared_vpc_service_config.host_project
-  service_project = google_project.self[each.value.project_name].project_id
-  depends_on      = [null_resource.self]
-}
+# resource "google_compute_shared_vpc_host_project" "self" {
+#   for_each   = {for k,v in local.project_objects: k => v if v.shared_vpc_host_config}    
+#   project    = google_project.self[each.value.project_name].project_id
+#   depends_on = [google_project_service.self]
+# }
 
-##### IAP
-resource "google_project_iam_member" "iap_member" {
-  for_each = {for v in local.iap_tunnel_members_list: v.key => v}
-  project  = google_project.self[each.value.project_name].project_id
-  role     = "roles/iap.tunnelResourceAccessor"
-  member   = each.value.member
-}
-
-#### KMS
-resource "google_project_iam_member" "kms_encrypterdecrypter_member" {
-  for_each = {for v in local.kms_encrypterdecrypter_members_list: v.key => v}
-  project  = google_project.self[each.value.project_name].project_id
-  role     = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
-  member   = each.value.member
-}
-
-#CloudBuild worker pool user IAM
-resource "google_project_iam_member" "cb_sa_project_permission" {
-    for_each   = {for p in local.project_objects: p.workerpool_project_id => p if p.workerpool_project_id != null}
-    project    = each.value.workerpool_project_id
-    role       = "roles/cloudbuild.workerPoolUser"
-    member     = "serviceAccount:${google_project.self[each.value.project_name].number}@cloudbuild.gserviceaccount.com"
-    depends_on = [google_project_service_identity.self]
-}
+# resource "google_compute_shared_vpc_service_project" "self" {
+#   for_each        = {for k,v in local.project_objects: k => v if v.shared_vpc_service_config.attach}
+#   host_project    = each.value.shared_vpc_service_config.host_project
+#   service_project = google_project.self[each.value.project_name].project_id
+#   depends_on      = [null_resource.self]
+# }
 
 resource "google_service_account" "self" {
     for_each     = {for v in local.service_accounts: v.key => v if v.create}
@@ -191,42 +137,10 @@ resource "google_project_iam_member" "sa" {
   }
 }
 
-# resource "google_project_iam_member" "raw" {
-#     for_each   = {for v in local.raw_access_roles: v.key => v...}
-#     project    = "core-p-cpc-datafoundation-prj"
-#     role       = each.value[0].role
-#     member     = try("serviceAccount:${google_service_account.self[each.value[0].sa_key].email}","group:${each.value[0].name}")
-#     depends_on = [google_service_account.self]
-# }
-
-# resource "google_project_iam_member" "eds" {
-#     for_each   = {for v in local.eds_access_roles: v.key => v...}
-#     project    = "eds-p-cpc-dataintegration-prj"
-#     role       = each.value[0].role
-#     member     = try("serviceAccount:${google_service_account.self[each.value[0].sa_key].email}","group:${each.value[0].name}")
-#     depends_on = [google_service_account.self]
-# }
-
-# resource "google_project_iam_member" "ods" {
-#     for_each   = {for v in local.ods_access_roles: v.key => v...}
-#     project    = "ods-p-cpc-dataintegration-prj"
-#     role       = each.value[0].role
-#     member     = try("serviceAccount:${google_service_account.self[each.value[0].sa_key].email}","group:${each.value[0].name}")
-#     depends_on = [google_service_account.self]
-# }
-
-# data "google_cloud_identity_group_lookup" "self" {
-#     for_each = {for v in local.ad_iam_roles: v.key => v}
-#     group_key {
-#         id = each.value.member
-#     }
-# }
-
 data "google_iam_role" "self" {
   for_each = {for v in concat(local.ad_iam_roles, local.sa_iam_roles): v.key => v}
   name = each.value.role
 }
-
 
 resource "google_project_iam_member" "ad" {
   for_each = {for v in local.ad_iam_roles: v.key => v}
