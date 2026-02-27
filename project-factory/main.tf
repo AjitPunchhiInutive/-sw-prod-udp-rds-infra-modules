@@ -169,42 +169,45 @@ resource "google_monitoring_notification_channel" "self" {
     labels       = {"${local.email}" = each.value.send_notification_to}
     depends_on = [ google_project.self, time_sleep.wait_for_apis]
 }
-
 resource "google_billing_budget" "self" {
-    for_each        = {for k, v in local.project_objects: k => v if v.budget != null}
-    depends_on = [
+  for_each = { for k, v in local.project_objects : k => v if v.budget != null }
+
+  # ✅ Must wait for billing API on BOTH projects before creating budget
+  depends_on = [
     google_project_service.self,
-    time_sleep.wait_for_apis,
-    google_monitoring_notification_channel.self
+    time_sleep.wait_for_billing_api,              # ✅ Waits for billing API
+    google_monitoring_notification_channel.self   # ✅ Channels must exist first
   ]
-    billing_account = each.value.billing_account
-    display_name    = "${each.value.project_name} Budget Alert"
- 
-    budget_filter {
-        projects = ["projects/${google_project.self[each.value.project_name].number}"]
+
+  billing_account = each.value.billing_account
+  display_name    = "${each.value.project_name} Budget Alert"
+
+  budget_filter {
+    projects = ["projects/${google_project.self[each.value.project_name].number}"]
+  }
+
+  amount {
+    specified_amount {
+      currency_code = "USD"
+      units         = each.value.budget.amount
     }
- 
-    amount {
-        specified_amount {
-            currency_code = "USD"
-            units         = each.value.budget.amount  # Budget amount in dollars
-        }
+  }
+
+  dynamic "threshold_rules" {
+    for_each = each.value.budget.threshold_rules
+    content {
+      threshold_percent = threshold_rules.value
     }
- 
-    dynamic "threshold_rules" {
-      for_each = each.value.budget.threshold_rules    # Alert at set threshold
-      content {
-        threshold_percent = threshold_rules.value
-      }
-    }
- 
-    all_updates_rule {
-        monitoring_notification_channels = flatten([
-            for t in each.value.budget.types: [
-                for n in t.send_notifications_to: [
-                    google_monitoring_notification_channel.self["${each.value.project_name}::${t.type}::${n}"].name 
-                ] 
-            ]
-        ])
-    }
+  }
+
+  all_updates_rule {
+    monitoring_notification_channels = flatten([
+      for t in each.value.budget.types : [
+        for n in t.send_notifications_to : [
+          google_monitoring_notification_channel.self["${each.value.project_name}::${t.type}::${n}"].name
+        ]
+      ]
+    ])
+  }
 }
+
