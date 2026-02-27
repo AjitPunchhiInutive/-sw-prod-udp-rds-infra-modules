@@ -166,6 +166,7 @@ resource "google_monitoring_notification_channel" "self" {
 
 resource "google_billing_budget" "self" {
     for_each        = {for k, v in local.project_objects: k => v if v.budget != null}
+    depends_on = [ google_project_service.self ]
     billing_account = each.value.billing_account
     display_name    = "${each.value.project_name} Budget Alert"
  
@@ -196,5 +197,4 @@ resource "google_billing_budget" "self" {
             ]
         ])
     }
-    depends_on = [ google_project_service.self ]
 }
