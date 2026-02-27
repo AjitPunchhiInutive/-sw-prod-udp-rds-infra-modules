@@ -22,6 +22,12 @@ resource "google_project_service" "self" {
     depends_on                 = [null_resource.self ]
 }
 
+resource "time_sleep" "wait_for_apis" {
+  depends_on = [google_project_service.self]
+
+  create_duration = "60s"    # ✅ Wait 60 seconds for APIs to fully propagate
+}
+
 resource "google_project_organization_policy" "self" {
     for_each   = {for v in local.project_policies_boolean: v.key => v}
     project    = google_project.self[each.value.project_name].project_id
@@ -161,12 +167,16 @@ resource "google_monitoring_notification_channel" "self" {
     type         = each.value.type
     project      = each.value.project_name 
     labels       = {"${local.email}" = each.value.send_notification_to}
-    depends_on = [ google_project.self ]
+    depends_on = [ google_project.self, time_sleep.wait_for_apis]
 }
 
 resource "google_billing_budget" "self" {
     for_each        = {for k, v in local.project_objects: k => v if v.budget != null}
-    depends_on = [ google_project_service.self ]
+    depends_on = [
+    google_project_service.self,
+    time_sleep.wait_for_apis,
+    google_monitoring_notification_channel.self
+  ]
     billing_account = each.value.billing_account
     display_name    = "${each.value.project_name} Budget Alert"
  
