@@ -39,8 +39,12 @@ variable "github_workload_identity_factory" {
 
     # Scoped IAM roles
     project_roles             = optional(list(string), [])          #(Optional) Roles at project scope
-    folder_id                 = optional(string)                     #(Optional) Folder for folder-scoped roles
-    folder_roles              = optional(list(string), [])          #(Optional) Roles at folder scope
+    # folder_id                 = optional(string)                     #(Optional) Folder for folder-scoped roles
+    # folder_roles              = optional(list(string), [])          #(Optional) Roles at folder scope
+    folder_roles = optional(list(object({
+    folder_id = string
+    roles     = list(string)
+    })), [])
     org_id                    = optional(string)                     #(Optional) Organization for org-scoped roles
     org_roles                 = optional(list(string), [])          #(Optional) Roles at org scope
     billing_account_id        = optional(string)                     #(Optional) Billing account for billing-scoped roles
