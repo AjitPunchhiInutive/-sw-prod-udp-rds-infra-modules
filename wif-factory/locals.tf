@@ -58,4 +58,18 @@ locals {
       }
     }
   ]...)
+  folder_role_bindings = {
+    for pair in flatten([
+      for item in var.github_workload_identity_factory : [
+        for f in item.folder_roles : [
+          for role in f.roles : {
+            key       = "${f.folder_id}-${role}"
+            folder_id = f.folder_id
+            role      = role
+            sa_email  = google_service_account.sa[item.sa_account_id].email
+          }
+        ]
+      ]
+    ]) : pair.key => pair
+  }
 }
