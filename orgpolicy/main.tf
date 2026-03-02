@@ -1,4 +1,4 @@
-# ── V1: Folder Standard Boolean ──────────────────────────────────────────────
+# V1 — Folder standard boolean (single-dot constraints only)
 resource "google_folder_organization_policy" "boolean_policies" {
   for_each = local.folder_boolean_policies_standard
 
@@ -10,7 +10,7 @@ resource "google_folder_organization_policy" "boolean_policies" {
   }
 }
 
-# ── V1: Folder Standard List ─────────────────────────────────────────────────
+# V1 — Folder standard list (single-dot constraints only)
 resource "google_folder_organization_policy" "list_policies" {
   for_each = local.folder_list_policies_standard
 
@@ -39,7 +39,7 @@ resource "google_folder_organization_policy" "list_policies" {
   }
 }
 
-# ── V1: Project Standard Boolean ─────────────────────────────────────────────
+# V1 — Project standard boolean (single-dot constraints only)
 resource "google_project_organization_policy" "boolean_policies" {
   for_each = local.project_boolean_policies_standard
 
@@ -51,7 +51,7 @@ resource "google_project_organization_policy" "boolean_policies" {
   }
 }
 
-# ── V1: Project Standard List ────────────────────────────────────────────────
+# V1 — Project standard list (single-dot constraints only)
 resource "google_project_organization_policy" "list_policies" {
   for_each = local.project_list_policies_standard
 
@@ -80,7 +80,7 @@ resource "google_project_organization_policy" "list_policies" {
   }
 }
 
-# ── V2: Managed Boolean (.managed. constraints — folder or project) ───────────
+# V2 — Managed boolean (.managed. constraints — folder or project)
 resource "google_org_policy_policy" "managed_boolean_policies" {
   for_each = local.managed_boolean_policies
 
@@ -94,7 +94,7 @@ resource "google_org_policy_policy" "managed_boolean_policies" {
   }
 }
 
-# ── V2: Managed List (.managed. constraints — folder or project) ──────────────
+# V2 — Managed list (.managed. constraints — folder or project)
 resource "google_org_policy_policy" "managed_list_policies" {
   for_each = local.managed_list_policies
 
