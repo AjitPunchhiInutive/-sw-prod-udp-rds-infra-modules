@@ -1,6 +1,7 @@
 variable "secrets" {
   description = "Map of secrets to create in GCP Secret Manager"
   type = map(object({
+    deploy       = optional(bool, true)
     project_id   = string                        # (Required) GCP project ID
     secret_id    = string                        # (Required) Unique secret identifier
     labels       = optional(map(string), {})     # (Optional) Labels to attach to the secret
