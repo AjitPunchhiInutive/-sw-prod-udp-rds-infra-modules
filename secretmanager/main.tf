@@ -1,6 +1,5 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # GCP Secret Manager — Terraform
-# Supports: secret creation, versions, IAM bindings, replication, rotation
 # ─────────────────────────────────────────────────────────────────────────────
 
 # ── Secrets ──────────────────────────────────────────────────────────────────
@@ -11,7 +10,11 @@ resource "google_secret_manager_secret" "secrets" {
   secret_id = each.value.secret_id
   labels    = each.value.labels
 
-  # Replication policy
+  # ttl is a plain attribute — NOT a block
+  ttl = each.value.ttl
+
+  annotations = each.value.annotations
+
   replication {
     dynamic "auto" {
       for_each = each.value.replication_type == "auto" ? [1] : []
@@ -53,23 +56,13 @@ resource "google_secret_manager_secret" "secrets" {
     }
   }
 
-  # Expiration (optional)
-  dynamic "ttl" {
-    for_each = each.value.ttl != null ? [1] : []
-    content {
-      ttl = each.value.ttl
-    }
-  }
-
-  # Pub/Sub topics to notify on rotation
+  # Pub/Sub topics for rotation notifications
   dynamic "topics" {
     for_each = each.value.topics
     content {
       name = topics.value
     }
   }
-
-  annotations = each.value.annotations
 }
 
 # ── Secret Versions ───────────────────────────────────────────────────────────
