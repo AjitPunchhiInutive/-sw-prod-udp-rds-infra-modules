@@ -48,13 +48,13 @@ resource "google_secret_manager_secret" "secrets" {
   }
 
   # Rotation policy (optional)
-  dynamic "rotation" {
-    for_each = each.value.rotation_period != null ? [1] : []
-    content {
-      rotation_period    = each.value.rotation_period
-      next_rotation_time = each.value.next_rotation_time
-    }
-  }
+#   dynamic "rotation" {
+#     for_each = each.value.rotation_period != null ? [1] : []
+#     content {
+#       rotation_period    = each.value.rotation_period
+#       next_rotation_time = each.value.next_rotation_time
+#     }
+#   }
 
   # Pub/Sub topics for rotation notifications
 #   dynamic "topics" {

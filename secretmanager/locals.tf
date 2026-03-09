@@ -10,8 +10,8 @@ locals {
       replication_type      = try(v.replication_type, "auto")
       replication_locations = try(v.replication_locations, [])
       kms_key_name          = try(v.kms_key_name, null)
-      rotation_period       = try(v.rotation_period, null)
-      next_rotation_time    = try(v.next_rotation_time, null)
+    #   rotation_period       = try(v.rotation_period, null)
+    #   next_rotation_time    = try(v.next_rotation_time, null)
       ttl                   = try(v.ttl, null)
     #   topics                = try(v.topics, [])
     }

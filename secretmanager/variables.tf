@@ -13,8 +13,8 @@ variable "secrets" {
     kms_key_name          = optional(string, null)     # CMEK key — applies to all replicas
 
     # Rotation
-    rotation_period    = optional(string, null) # e.g. "604800s" (7 days). Requires topics.
-    next_rotation_time = optional(string, null) # RFC3339 format e.g. "2025-01-01T00:00:00Z"
+    # rotation_period    = optional(string, null) # e.g. "604800s" (7 days). Requires topics.
+    # next_rotation_time = optional(string, null) # RFC3339 format e.g. "2025-01-01T00:00:00Z"
     #topics             = optional(list(string), []) # Pub/Sub topic names for rotation notifications
 
     # Expiration
