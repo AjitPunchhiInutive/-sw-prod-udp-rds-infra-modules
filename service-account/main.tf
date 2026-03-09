@@ -1,11 +1,7 @@
-# =============================================================
-# main.tf — Core Resources
-# =============================================================
-
 # ------- Service Accounts -------------------------------------
 
 resource "google_service_account" "sa" {
-  for_each = var.config
+  for_each = var.config.service_accounts
 
   account_id   = each.value.account_id
   display_name = each.value.display_name
