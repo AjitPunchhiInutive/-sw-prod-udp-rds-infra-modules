@@ -13,7 +13,7 @@ locals {
       rotation_period       = try(v.rotation_period, null)
       next_rotation_time    = try(v.next_rotation_time, null)
       ttl                   = try(v.ttl, null)
-      topics                = try(v.topics, [])
+    #   topics                = try(v.topics, [])
     }
     if v.deploy  # ← only deploy when true
   }

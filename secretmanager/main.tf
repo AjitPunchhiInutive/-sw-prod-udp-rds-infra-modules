@@ -57,12 +57,12 @@ resource "google_secret_manager_secret" "secrets" {
   }
 
   # Pub/Sub topics for rotation notifications
-  dynamic "topics" {
-    for_each = each.value.topics
-    content {
-      name = topics.value
-    }
-  }
+#   dynamic "topics" {
+#     for_each = each.value.topics
+#     content {
+#       name = topics.value
+#     }
+#   }
 }
 
 # ── Secret Versions ───────────────────────────────────────────────────────────

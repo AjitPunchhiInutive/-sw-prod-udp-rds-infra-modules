@@ -15,7 +15,7 @@ variable "secrets" {
     # Rotation
     rotation_period    = optional(string, null) # e.g. "604800s" (7 days). Requires topics.
     next_rotation_time = optional(string, null) # RFC3339 format e.g. "2025-01-01T00:00:00Z"
-    topics             = optional(list(string), []) # Pub/Sub topic names for rotation notifications
+    #topics             = optional(list(string), []) # Pub/Sub topic names for rotation notifications
 
     # Expiration
     ttl = optional(string, null) # e.g. "86400s" (1 day). Cannot be used with expire_time.
