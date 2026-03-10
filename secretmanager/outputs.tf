@@ -8,8 +8,8 @@ output "secret_names" {
   value       = { for k, v in google_secret_manager_secret.secrets : k => v.secret_id }
 }
 
-# output "secret_version_ids" {
-#   description = "Map of secret version keys to their full resource IDs"
-#   value       = { for k, v in google_secret_manager_secret_version.versions : k => v.id }
-#   sensitive   = true
-# }
+output "secret_version_ids" {
+  description = "Map of secret version keys to their full resource IDs"
+  value       = { for k, v in google_secret_manager_secret_version.versions : k => v.id }
+  sensitive   = true
+}

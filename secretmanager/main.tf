@@ -66,15 +66,15 @@ resource "google_secret_manager_secret" "secrets" {
 }
 
 # ── Secret Versions ───────────────────────────────────────────────────────────
-# resource "google_secret_manager_secret_version" "versions" {
-#   for_each = local.secret_versions
+resource "google_secret_manager_secret_version" "versions" {
+  for_each = local.secret_versions
 
-#   secret      = google_secret_manager_secret.secrets[each.value.secret_key].id
-#   secret_data = each.value.secret_data
-#   enabled     = each.value.enabled
+  secret      = google_secret_manager_secret.secrets[each.value.secret_key].id
+  secret_data = each.value.secret_data
+  enabled     = each.value.enabled
 
-#   depends_on = [google_secret_manager_secret.secrets]
-# }
+  depends_on = [google_secret_manager_secret.secrets]
+}
 
 # ── Secret IAM Bindings ───────────────────────────────────────────────────────
 resource "google_secret_manager_secret_iam_member" "bindings" {

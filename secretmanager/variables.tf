@@ -21,10 +21,10 @@ variable "secrets" {
     ttl = optional(string, null) # e.g. "86400s" (1 day). Cannot be used with expire_time.
 
     # Secret versions
-    # versions = optional(map(object({
-    #   secret_data = string           # (Required) The secret payload
-    #   enabled     = optional(bool, true) # (Optional) Whether this version is enabled
-    # })), {})
+    versions = optional(map(object({
+      secret_data = string           # (Required) The secret payload
+      enabled     = optional(bool, true) # (Optional) Whether this version is enabled
+    })), {})
 
     # IAM bindings
     iam_bindings = optional(list(object({
