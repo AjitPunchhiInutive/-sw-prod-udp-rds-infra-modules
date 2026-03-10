@@ -19,19 +19,19 @@ locals {
   }
 
   # Flatten secret versions — only for deployed secrets
-  secret_versions = {
-    for pair in flatten([
-      for sk, sv in var.secrets : [
-        for vk, vv in try(sv.versions, {}) : {
-          key         = "${sk}-${vk}"
-          secret_key  = sk
-          secret_data = vv.secret_data
-          enabled     = try(vv.enabled, true)
-        }
-      ]
-      if sv.deploy
-    ]) : pair.key => pair
-  }
+#   secret_versions = {
+#     for pair in flatten([
+#       for sk, sv in var.secrets : [
+#         for vk, vv in try(sv.versions, {}) : {
+#           key         = "${sk}-${vk}"
+#           secret_key  = sk
+#           secret_data = vv.secret_data
+#           enabled     = try(vv.enabled, true)
+#         }
+#       ]
+#       if sv.deploy
+#     ]) : pair.key => pair
+#   }
 
   # Flatten IAM bindings — only for deployed secrets
   secret_iam_bindings = {
