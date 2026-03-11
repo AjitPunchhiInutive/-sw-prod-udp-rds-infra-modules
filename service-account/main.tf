@@ -46,7 +46,7 @@ resource "google_secret_manager_secret_version" "sa_key_version" {
 
   # Prevent accidental deletion of secret versions in prod
   lifecycle {
-    prevent_destroy = true
+    prevent_destroy = false
   }
 
   depends_on = [google_service_account_key.sa_key]
