@@ -43,8 +43,8 @@ locals {
                 sa_key = sa.key
                 project_name = sa.project_name,
                 key = "${sa.key}::${r}"
-            }) if sa.iam_roles != null && sa.create == true
-        ] if sa.create == true
+            }) if sa.iam_roles != null
+        ]
     ])
     ad_groups = flatten([
         for p in local.project_objects: [
