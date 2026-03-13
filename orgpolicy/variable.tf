@@ -11,7 +11,6 @@ variable "org_policies" {
       suggested_value     = optional(string, "")
       status              = bool
       values              = list(string)
-      dry_run             = optional(bool, false)
     })), {})
   })
 

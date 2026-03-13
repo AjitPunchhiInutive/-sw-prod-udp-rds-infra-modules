@@ -22,19 +22,6 @@ locals {
       status              = config.status
       values              = config.values
     }
-    if !config.dry_run
-  ] : []
-
-  folder_list_dryrun_policies = local.is_folder && var.org_policies.deploy ? [
-    for constraint, config in var.org_policies.policy_list : {
-      key                 = constraint
-      folder_id           = var.org_policies.folder_id
-      constraint          = constraint
-      inherit_from_parent = config.inherit_from_parent
-      status              = config.status
-      values              = config.values
-    }
-    if config.dry_run
   ] : []
 
   project_boolean_policies = local.is_project && var.org_policies.deploy ? [
@@ -56,18 +43,5 @@ locals {
       status              = config.status
       values              = config.values
     }
-    if !config.dry_run
-  ] : []
-
-  project_list_dryrun_policies = local.is_project && var.org_policies.deploy ? [
-    for constraint, config in var.org_policies.policy_list : {
-      key                 = constraint
-      project_id          = var.org_policies.project_id
-      constraint          = constraint
-      inherit_from_parent = config.inherit_from_parent
-      status              = config.status
-      values              = config.values
-    }
-    if config.dry_run
   ] : []
 }
