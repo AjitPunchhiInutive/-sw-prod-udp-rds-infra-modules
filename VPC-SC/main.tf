@@ -22,9 +22,7 @@ resource "google_access_context_manager_access_policy" "policy" {
   title  = var.config.access_policy_title
 
   # Scope to all projects in the perimeter
-  scopes = [
-    for p in var.config.projects : "projects/${p.project_number}"
-  ]
+  scopes = ["projects/${var.config.primary_project_number}"]
 }
 
 
