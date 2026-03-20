@@ -103,12 +103,12 @@ variable "config" {
   }
 
   validation {
-    condition     = can(regex("^[a-z][a-z0-9_]{0,1022}$", var.config.bigquery.data_dataset_id))
+    condition     = can(regex("^[a-z][a-z0-9_]*$", var.config.bigquery.data_dataset_id))
     error_message = "bigquery.data_dataset_id must start with a letter and contain only lowercase letters, numbers, or underscores."
   }
 
   validation {
-    condition     = can(regex("^[a-z][a-z0-9_]{0,1022}$", var.config.bigquery.audit_dataset_id))
+    condition     = can(regex("^[a-z][a-z0-9_]*$", var.config.bigquery.audit_dataset_id))
     error_message = "bigquery.audit_dataset_id must start with a letter and contain only lowercase letters, numbers, or underscores."
   }
 
