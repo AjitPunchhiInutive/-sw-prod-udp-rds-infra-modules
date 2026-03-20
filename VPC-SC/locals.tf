@@ -8,8 +8,8 @@ locals {
   # The YAML file is the source of truth. It is loaded here for
   # reference. The actual variable input comes from terraform.tfvars
   # which is generated from the YAML in CI/CD pipelines.
-  sc_config_files = fileset("config/service-control", "*.yaml")
-  _yaml_config    = yamldecode(file("config/service-control/${one(local.sc_config_files)}"))
+#   sc_config_files = fileset("config/service-control", "*.yaml")
+#   _yaml_config    = yamldecode(file("config/service-control/${one(local.sc_config_files)}"))
 
   # ─── Access Policy Name ─────────────────────────────────────
   # Resolves full ACM policy path from either:
@@ -28,8 +28,8 @@ locals {
 
   # ─── Perimeter Resources ────────────────────────────────────
   # GCP requires "projects/<project_number>" format
-  perimeter_resources = [
-    "projects/${var.config.project_number}"
+   perimeter_resources = [
+    for p in var.config.projects : "projects/${p.project_number}"
   ]
 
   # ─── Access Levels Map ──────────────────────────────────────

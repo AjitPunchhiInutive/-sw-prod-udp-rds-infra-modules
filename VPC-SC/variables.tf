@@ -10,15 +10,23 @@ variable "config" {
     # ------- Organization -----------------------------------------
     org_id = string
 
-    # ------- Project ----------------------------------------------
-    project_id     = string
-    project_number = string
-    region         = optional(string, "us-central1")
+    # ------- Multiple Projects ------------------------------------
+    # All projects are added to the VPC SC perimeter
+    projects = list(object({
+      project_id     = string
+      project_number = string
+      region         = optional(string, "us-central1")
+    }))
+
+    # Primary project — hosts BigQuery, Storage, Log Sink resources
+    primary_project_id     = string
+    primary_project_number = string
+    region                 = optional(string, "us-central1")
 
     # ------- Access Policy ----------------------------------------
-    create_access_policy  = optional(bool, true)
-    access_policy_title   = optional(string, "VPC SC Access Policy")
-    existing_policy_id    = optional(string, "")   # used when create_access_policy = false
+    create_access_policy = optional(bool, false)
+    access_policy_title  = optional(string, "VPC SC Access Policy")
+    existing_policy_id   = optional(string, "")
 
     # ------- Perimeter --------------------------------------------
     perimeter_name        = string
@@ -34,9 +42,6 @@ variable "config" {
     restricted_services = optional(list(string), [
       "bigquery.googleapis.com",
       "storage.googleapis.com",
-      "biglake.googleapis.com",
-      "bigqueryconnection.googleapis.com",
-      "secretmanager.googleapis.com",
     ])
 
     # ------- Access Levels ----------------------------------------
@@ -58,19 +63,16 @@ variable "config" {
 
     # ------- BigQuery ---------------------------------------------
     bigquery = object({
-      location = optional(string, "US")
-
-      # Workload data dataset
+      location           = optional(string, "US")
       data_dataset_id    = string
       data_friendly_name = optional(string, "Data Dataset")
       data_description   = optional(string, "Primary workload data dataset")
 
-      # Audit log dataset (receives log sink)
       audit_dataset_id            = string
       audit_friendly_name         = optional(string, "Audit Logs Dataset")
       audit_description           = optional(string, "Stores VPC SC audit logs")
-      default_table_expiration_ms = optional(number, 7776000000)  # 90 days
-      partition_expiration_ms     = optional(number, 7776000000)  # 90 days
+      default_table_expiration_ms = optional(number, 7776000000)
+      partition_expiration_ms     = optional(number, 7776000000)
       delete_contents_on_destroy  = optional(bool, false)
     })
 
@@ -85,7 +87,7 @@ variable "config" {
     labels = optional(map(string), {})
   })
 
-  # ── Validations ──────────────────────────────────────────────
+  # ── Validations ───────────────────────────────────────────────
 
   validation {
     condition     = length(var.config.org_id) > 0
@@ -93,13 +95,18 @@ variable "config" {
   }
 
   validation {
-    condition     = length(var.config.project_id) > 0
-    error_message = "config.project_id must not be empty."
+    condition     = length(var.config.projects) > 0
+    error_message = "config.projects must contain at least one project."
+  }
+
+  validation {
+    condition     = length(var.config.primary_project_id) > 0
+    error_message = "config.primary_project_id must not be empty."
   }
 
   validation {
     condition     = can(regex("^[a-z][a-z0-9_-]{0,28}[a-z0-9]$", var.config.perimeter_name))
-    error_message = "perimeter_name must be lowercase letters, digits, hyphens, or underscores (6-30 chars)."
+    error_message = "perimeter_name must be lowercase letters, digits, hyphens, or underscores."
   }
 
   validation {

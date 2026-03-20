@@ -1,6 +1,6 @@
 # =============================================================
 # main.tf
-# Section 1 — Access Policy
+# Section 1 — Access Policy (create or use existing)
 # Section 2 — VPC Service Controls + Access Levels
 # Section 3 — Cloud Storage Bucket
 # Section 4 — BigQuery Datasets (data + audit)
@@ -12,14 +12,19 @@
 # SECTION 1: ACCESS CONTEXT MANAGER POLICY
 # ─────────────────────────────────────────────────────────────
 # Only created when var.config.create_access_policy = true.
-# Set to false and provide existing_policy_id to reuse an existing one.
+# Requires accesscontextmanager.policies.create at org level.
+# Set to false and provide existing_policy_id to reuse.
 
 resource "google_access_context_manager_access_policy" "policy" {
   count = var.config.create_access_policy ? 1 : 0
 
   parent = "organizations/${var.config.org_id}"
   title  = var.config.access_policy_title
-  scopes = ["projects/${var.config.project_number}"]
+
+  # Scope to all projects in the perimeter
+  scopes = [
+    for p in var.config.projects : "projects/${p.project_number}"
+  ]
 }
 
 
@@ -28,8 +33,6 @@ resource "google_access_context_manager_access_policy" "policy" {
 # ─────────────────────────────────────────────────────────────
 
 # --- Access Levels -------------------------------------------
-# Defines trusted identities that are allowed through the perimeter.
-
 resource "google_access_context_manager_access_level" "levels" {
   for_each = local.access_levels_map
 
@@ -49,6 +52,7 @@ resource "google_access_context_manager_access_level" "levels" {
 # --- Service Perimeter ---------------------------------------
 # use_explicit_dry_run_spec = true  → DRY_RUN  (audit, no blocking)
 # use_explicit_dry_run_spec = false → ENFORCED (violations blocked)
+# perimeter_resources includes ALL projects from var.config.projects
 
 resource "google_access_context_manager_service_perimeter" "perimeter" {
   parent         = local.policy_name
@@ -59,17 +63,16 @@ resource "google_access_context_manager_service_perimeter" "perimeter" {
 
   use_explicit_dry_run_spec = var.config.dry_run
 
-  # ── Enforced Spec ──────────────────────────────────────────
-  # Always defined. Becomes active when dry_run = false.
+  # ── Enforced Spec ─────────────────────────────────────────
+  # Active when dry_run = false
   status {
     resources           = local.perimeter_resources
     restricted_services = var.config.restricted_services
     access_levels       = local.access_level_names
   }
 
-  # ── Dry Run Spec ───────────────────────────────────────────
-  # Only rendered when dry_run = true.
-  # Logs all violations — nothing is blocked.
+  # ── Dry Run Spec ──────────────────────────────────────────
+  # Only rendered when dry_run = true — logs violations, blocks nothing
   dynamic "spec" {
     for_each = var.config.dry_run ? [1] : []
     content {
@@ -86,12 +89,12 @@ resource "google_access_context_manager_service_perimeter" "perimeter" {
 # ─────────────────────────────────────────────────────────────
 # SECTION 3: CLOUD STORAGE BUCKET
 # ─────────────────────────────────────────────────────────────
-# uniform_bucket_level_access = true is required for buckets
-# protected by a VPC SC perimeter.
+# Created in primary_project_id
+# uniform_bucket_level_access required inside VPC SC perimeter
 
 resource "google_storage_bucket" "bucket" {
   name          = var.config.storage.bucket_name
-  project       = var.config.project_id
+  project       = var.config.primary_project_id
   location      = var.config.storage.location
   storage_class = var.config.storage.storage_class
   force_destroy = var.config.storage.force_destroy
@@ -118,11 +121,12 @@ resource "google_storage_bucket" "bucket" {
 # ─────────────────────────────────────────────────────────────
 # SECTION 4: BIGQUERY DATASETS
 # ─────────────────────────────────────────────────────────────
+# Both datasets created in primary_project_id
 
 # --- Data Dataset (workload) ---------------------------------
 resource "google_bigquery_dataset" "data" {
   dataset_id    = var.config.bigquery.data_dataset_id
-  project       = var.config.project_id
+  project       = var.config.primary_project_id
   friendly_name = var.config.bigquery.data_friendly_name
   description   = var.config.bigquery.data_description
   location      = var.config.bigquery.location
@@ -142,7 +146,7 @@ resource "google_bigquery_dataset" "data" {
 # --- Audit Dataset (log sink destination) --------------------
 resource "google_bigquery_dataset" "audit" {
   dataset_id                      = var.config.bigquery.audit_dataset_id
-  project                         = var.config.project_id
+  project                         = var.config.primary_project_id
   friendly_name                   = var.config.bigquery.audit_friendly_name
   description                     = var.config.bigquery.audit_description
   location                        = var.config.bigquery.location
@@ -170,7 +174,7 @@ resource "google_bigquery_dataset" "audit" {
 # --- Project Log Sink ----------------------------------------
 resource "google_logging_project_sink" "audit_sink" {
   name        = var.config.log_sink.name
-  project     = var.config.project_id
+  project     = var.config.primary_project_id
   description = var.config.log_sink.description
   destination = local.log_sink_destination
   filter      = var.config.log_sink.filter
@@ -186,7 +190,7 @@ resource "google_logging_project_sink" "audit_sink" {
 
 # --- Grant Sink Writer access to Audit Dataset ---------------
 resource "google_bigquery_dataset_iam_member" "log_sink_writer" {
-  project    = var.config.project_id
+  project    = var.config.primary_project_id
   dataset_id = google_bigquery_dataset.audit.dataset_id
   role       = "roles/bigquery.dataEditor"
   member     = google_logging_project_sink.audit_sink.writer_identity
