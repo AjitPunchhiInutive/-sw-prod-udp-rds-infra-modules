@@ -47,7 +47,8 @@ locals {
 
   # ─── Log Sink Destination ───────────────────────────────────
   # BigQuery destination URI format required by google_logging_project_sink
-  log_sink_destination = "bigquery.googleapis.com/projects/${var.config.project_id}/datasets/${var.config.bigquery.audit_dataset_id}"
+  #log_sink_destination = "bigquery.googleapis.com/projects/${var.config.project_id}/datasets/${var.config.bigquery.audit_dataset_id}"
+  log_sink_destination = "bigquery.googleapis.com/projects/${var.config.primary_project_id}/datasets/${var.config.bigquery.audit_dataset_id}"
 
   # ─── Common Labels ──────────────────────────────────────────
   common_labels = merge(
