@@ -24,7 +24,7 @@ locals {
   # ─── Perimeter Mode ─────────────────────────────────────────
   # dry_run = true  → "DRY_RUN"  (audit only — nothing blocked)
   # dry_run = false → "ENFORCED" (violations actively denied)
-  perimeter_mode = var.config.dry_run ? "DRY_RUN" : "ENFORCED"
+  perimeter_mode = var.config.dry_run ? "dry_run" : "enforced"
 
   # ─── Perimeter Resources ────────────────────────────────────
   # GCP requires "projects/<project_number>" format
