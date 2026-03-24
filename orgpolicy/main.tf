@@ -25,7 +25,7 @@ resource "google_folder_organization_policy" "list_policies" {
       for_each = each.value.status ? [1] : []
       content {
         values = length(each.value.values) > 0 ? each.value.values : null
-        all    = length(each.value.values) == 0 ? false : null
+        all    = length(each.value.values) == 0 ? true : null
       }
     }
 
@@ -66,7 +66,7 @@ resource "google_project_organization_policy" "list_policies" {
       for_each = each.value.status ? [1] : []
       content {
         values = length(each.value.values) > 0 ? each.value.values : null
-        all    = length(each.value.values) == 0 ? false : null
+        all    = length(each.value.values) == 0 ? true : null
       }
     }
 
