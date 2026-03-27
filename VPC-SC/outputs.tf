@@ -8,42 +8,41 @@ output "access_policy_name" {
   value       = local.policy_name
 }
 
-# ─── VPC SC ─────────────────────────────────────────────────
+# ─── VPC Service Controls ───────────────────────────────────
 output "perimeter_name" {
-  description = "Full resource name of the VPC SC perimeter."
+  description = "Full resource name of the VPC SC service perimeter."
   value       = google_access_context_manager_service_perimeter.perimeter.name
 }
 
 output "perimeter_mode" {
-  description = "Current perimeter mode: DRY_RUN or ENFORCED."
+  description = "Current perimeter mode: dry_run (audit) or enforced (blocking)."
   value       = local.perimeter_mode
 }
 
-output "restricted_services" {
-  description = "GCP APIs restricted by the perimeter."
-  value       = var.config.restricted_services
+output "perimeter_resources" {
+  description = "List of project resource paths included in the perimeter."
+  value       = local.perimeter_resources
 }
 
-# ─── Storage ─────────────────────────────────────────────────
-output "bucket_name" {
-  description = "Name of the Cloud Storage bucket."
-  value       = google_storage_bucket.bucket.name
+output "restricted_services_count" {
+  description = "Number of services restricted by the perimeter."
+  value       = length(var.config.restricted_services)
 }
 
-output "bucket_url" {
-  description = "gs:// URL of the bucket."
-  value       = google_storage_bucket.bucket.url
+output "access_level_names" {
+  description = "Full resource names of access levels bound to the perimeter."
+  value       = local.access_level_names
 }
 
 # ─── BigQuery ────────────────────────────────────────────────
-output "data_dataset_id" {
-  description = "BigQuery dataset ID for workload data."
-  value       = google_bigquery_dataset.data.dataset_id
+output "audit_dataset_id" {
+  description = "BigQuery dataset ID for VPC SC audit logs."
+  value       = google_bigquery_dataset.audit.dataset_id
 }
 
-output "audit_dataset_id" {
-  description = "BigQuery dataset ID for audit logs."
-  value       = google_bigquery_dataset.audit.dataset_id
+output "audit_dataset_self_link" {
+  description = "Self-link of the BigQuery audit log dataset."
+  value       = google_bigquery_dataset.audit.self_link
 }
 
 # ─── Log Sink ────────────────────────────────────────────────
