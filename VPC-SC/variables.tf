@@ -2,8 +2,8 @@ variable "config" {
   description = "All configuration for VPC Service Controls — access policy, perimeter, projects, restricted services, BigQuery audit dataset, GCS log bucket, and log sinks."
 
   type = object({
-
     org_id = string
+    folder_id = string
     projects = list(object({
       project_id     = string
       project_number = string
@@ -12,9 +12,9 @@ variable "config" {
     primary_project_id     = string
     primary_project_number = string
     region                 = optional(string, "us-central1")
-    create_access_policy = optional(bool, false)
+    create_access_policy = optional(bool, true)
     access_policy_title  = optional(string, "VPC SC Access Policy")
-    existing_policy_id   = optional(string, "")
+    existing_policy_id   = optional(string, "")  # only needed when create_access_policy = false
     perimeter_name        = string
     perimeter_title       = optional(string, "VPC SC Perimeter")
     perimeter_description = optional(string, "Managed by Terraform")
@@ -74,36 +74,43 @@ variable "config" {
       "cloudbuild.googleapis.com",
       "cloudsearch.googleapis.com",
     ])
+
+    # ------- Access Levels ----------------------------------------
     access_levels = optional(list(object({
       name        = string
       description = optional(string, "")
       members     = list(string)
     })), [])
 
-      bigquery = object({
+    # ------- BigQuery Audit Dataset -------------------------------
+    bigquery = object({
       location                    = optional(string, "US")
       audit_dataset_id            = string
       audit_friendly_name         = optional(string, "VPC SC Audit Logs")
       audit_description           = optional(string, "Stores VPC SC audit and violation logs")
-      default_table_expiration_ms = optional(number, 7776000000)  # 90 days
-      partition_expiration_ms     = optional(number, 7776000000)  # 90 days
+      default_table_expiration_ms = optional(number, 7776000000)
+      partition_expiration_ms     = optional(number, 7776000000)
       delete_contents_on_destroy  = optional(bool, false)
     })
+
+    # ------- GCS Log Storage Bucket -------------------------------
     storage = object({
-      bucket_name               = string
-      location                  = optional(string, "US")
-      storage_class             = optional(string, "STANDARD")
-      versioning_enabled        = optional(bool, false)
-      force_destroy             = optional(bool, false)
-      log_retention_days        = optional(number, 90)   # Object lifecycle delete age
+      bucket_name        = string
+      location           = optional(string, "US")
+      storage_class      = optional(string, "STANDARD")
+      versioning_enabled = optional(bool, false)
+      force_destroy      = optional(bool, false)
+      log_retention_days = optional(number, 90)
     })
 
-     log_sink = object({
+    # ------- Log Sink (BigQuery) ----------------------------------
+    log_sink = object({
       name        = string
       description = optional(string, "VPC SC audit log sink to BigQuery")
       filter      = optional(string, "protoPayload.status.code!=0 OR log_id(\"cloudaudit.googleapis.com/policy\")")
     })
 
+    # ------- Log Sink (GCS) ---------------------------------------
     log_sink_gcs = object({
       name        = string
       description = optional(string, "VPC SC audit log sink to GCS")
@@ -119,6 +126,11 @@ variable "config" {
   validation {
     condition     = length(var.config.org_id) > 0
     error_message = "config.org_id must not be empty."
+  }
+
+  validation {
+    condition     = length(var.config.folder_id) > 0
+    error_message = "config.folder_id must not be empty — required for policy scope."
   }
 
   validation {

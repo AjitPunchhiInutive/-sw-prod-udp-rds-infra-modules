@@ -1,7 +1,10 @@
 resource "google_access_context_manager_access_policy" "policy" {
   count  = var.config.create_access_policy ? 1 : 0
+
+  # Policy always lives under the organization
   parent = "organizations/${var.config.org_id}"
   title  = var.config.access_policy_title
+  scopes = ["folders/${var.config.folder_id}"]
 }
 
 resource "google_access_context_manager_access_level" "levels" {
@@ -28,15 +31,11 @@ resource "google_access_context_manager_service_perimeter" "perimeter" {
   perimeter_type = "PERIMETER_TYPE_REGULAR"
 
   use_explicit_dry_run_spec = var.config.dry_run
-
-  # ── Enforced Spec (active when dry_run = false) ────────────
   status {
     resources           = local.perimeter_resources
     restricted_services = var.config.restricted_services
     access_levels       = local.access_level_names
   }
-
-  # ── Dry Run Spec (active when dry_run = true) ──────────────
   dynamic "spec" {
     for_each = var.config.dry_run ? [1] : []
     content {
@@ -48,7 +47,6 @@ resource "google_access_context_manager_service_perimeter" "perimeter" {
 
   depends_on = [google_access_context_manager_access_level.levels]
 }
-
 resource "google_storage_bucket" "vpc_sc_logs" {
   name          = var.config.storage.bucket_name
   project       = var.config.primary_project_id
@@ -62,7 +60,6 @@ resource "google_storage_bucket" "vpc_sc_logs" {
     enabled = var.config.storage.versioning_enabled
   }
 
-  # Auto-delete log objects after retention period
   lifecycle_rule {
     action {
       type = "Delete"
@@ -75,7 +72,6 @@ resource "google_storage_bucket" "vpc_sc_logs" {
   labels = local.common_labels
 }
 
-# Grant GCS log sink writer SA objectCreator on the bucket
 resource "google_storage_bucket_iam_member" "gcs_sink_writer" {
   bucket = google_storage_bucket.vpc_sc_logs.name
   role   = "roles/storage.objectCreator"
@@ -86,7 +82,6 @@ resource "google_storage_bucket_iam_member" "gcs_sink_writer" {
     google_logging_project_sink.audit_sink_gcs,
   ]
 }
-
 resource "google_bigquery_dataset" "audit" {
   dataset_id                      = var.config.bigquery.audit_dataset_id
   project                         = var.config.primary_project_id
@@ -126,7 +121,6 @@ resource "google_logging_project_sink" "audit_sink_bq" {
   depends_on = [google_bigquery_dataset.audit]
 }
 
-# Grant BigQuery log sink writer SA dataEditor on the audit dataset
 resource "google_bigquery_dataset_iam_member" "bq_sink_writer" {
   project    = var.config.primary_project_id
   dataset_id = google_bigquery_dataset.audit.dataset_id
@@ -138,7 +132,6 @@ resource "google_bigquery_dataset_iam_member" "bq_sink_writer" {
     google_logging_project_sink.audit_sink_bq,
   ]
 }
-
 resource "google_logging_project_sink" "audit_sink_gcs" {
   name        = var.config.log_sink_gcs.name
   project     = var.config.primary_project_id

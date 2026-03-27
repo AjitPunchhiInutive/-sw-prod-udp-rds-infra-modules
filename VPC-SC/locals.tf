@@ -1,3 +1,4 @@
+
 locals {
   policy_name = var.config.create_access_policy ? (
     "accessPolicies/${google_access_context_manager_access_policy.policy[0].name}"
@@ -15,9 +16,8 @@ locals {
     for al in var.config.access_levels :
     "${local.policy_name}/accessLevels/${al.name}"
   ]
-  log_sink_destination_bq = "bigquery.googleapis.com/projects/${var.config.primary_project_id}/datasets/${var.config.bigquery.audit_dataset_id}"
-
-   log_sink_destination_gcs = "storage.googleapis.com/${var.config.storage.bucket_name}"
+  log_sink_destination_bq  = "bigquery.googleapis.com/projects/${var.config.primary_project_id}/datasets/${var.config.bigquery.audit_dataset_id}"
+  log_sink_destination_gcs = "storage.googleapis.com/${var.config.storage.bucket_name}"
   common_labels = merge(
     {
       managed_by     = "terraform"

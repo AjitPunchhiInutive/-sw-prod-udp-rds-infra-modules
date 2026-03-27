@@ -1,7 +1,18 @@
+
 # ─── Access Policy ──────────────────────────────────────────
 output "access_policy_name" {
   description = "Full resource name of the Access Context Manager policy."
   value       = local.policy_name
+}
+
+output "access_policy_id" {
+  description = "Numeric ID of the created Access Policy."
+  value       = var.config.create_access_policy ? google_access_context_manager_access_policy.policy[0].name : var.config.existing_policy_id
+}
+
+output "access_policy_folder_scope" {
+  description = "Folder ID used to scope this Access Policy."
+  value       = "folders/${var.config.folder_id}"
 }
 
 # ─── VPC Service Controls ───────────────────────────────────
