@@ -95,7 +95,6 @@ variable "config" {
       "ml.googleapis.com",
       # DevOps & CI/CD
       "cloudbuild.googleapis.com",
-      "sourcerepo.googleapis.com",
       "cloudsearch.googleapis.com",
     ])
 
