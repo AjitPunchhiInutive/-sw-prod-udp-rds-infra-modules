@@ -57,7 +57,6 @@ variable "config" {
       "workloadmanager.googleapis.com",
       # Storage
       "storage.googleapis.com",
-      "storage-api.googleapis.com",
       "file.googleapis.com",
       "netapp.googleapis.com",
       # Data & Analytics
