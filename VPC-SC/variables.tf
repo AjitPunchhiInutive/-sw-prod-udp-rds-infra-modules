@@ -63,7 +63,6 @@ variable "config" {
       "netapp.googleapis.com",
       # Data & Analytics
       "bigquery.googleapis.com",
-      "bigquerystorage.googleapis.com",
       "bigqueryconnection.googleapis.com",
       "biglake.googleapis.com",
       "dataflow.googleapis.com",
