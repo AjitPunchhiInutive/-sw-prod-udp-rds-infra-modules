@@ -58,7 +58,6 @@ variable "config" {
       # Storage
       "storage.googleapis.com",
       "storage-api.googleapis.com",
-      "storage-component.googleapis.com",
       "file.googleapis.com",
       "netapp.googleapis.com",
       # Data & Analytics
