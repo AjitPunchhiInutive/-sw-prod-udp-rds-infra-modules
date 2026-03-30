@@ -1,3 +1,6 @@
+# =============================================================
+# outputs.tf
+# =============================================================
 
 # ─── Access Policy ──────────────────────────────────────────
 output "access_policy_name" {
@@ -6,13 +9,18 @@ output "access_policy_name" {
 }
 
 output "access_policy_id" {
-  description = "Numeric ID of the created Access Policy."
+  description = "Numeric ID of the Access Policy."
   value       = var.config.create_access_policy ? google_access_context_manager_access_policy.policy[0].name : var.config.existing_policy_id
 }
 
-output "access_policy_folder_scope" {
-  description = "Folder ID used to scope this Access Policy."
-  value       = "folders/${var.config.folder_id}"
+output "access_policy_primary_scope" {
+  description = "Primary folder scope applied to the Access Policy (folder_ids[0])."
+  value       = "folders/${local.primary_folder_id}"
+}
+
+output "all_folder_ids" {
+  description = "All folder IDs provided — only folder_ids[0] is used as policy scope."
+  value       = local.all_folder_paths
 }
 
 # ─── VPC Service Controls ───────────────────────────────────

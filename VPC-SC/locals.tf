@@ -16,6 +16,8 @@ locals {
     for al in var.config.access_levels :
     "${local.policy_name}/accessLevels/${al.name}"
   ]
+  primary_folder_id = var.config.folder_ids[0]
+  all_folder_paths = [for f in var.config.folder_ids : "folders/${f}"]
   log_sink_destination_bq  = "bigquery.googleapis.com/projects/${var.config.primary_project_id}/datasets/${var.config.bigquery.audit_dataset_id}"
   log_sink_destination_gcs = "storage.googleapis.com/${var.config.storage.bucket_name}"
   common_labels = merge(

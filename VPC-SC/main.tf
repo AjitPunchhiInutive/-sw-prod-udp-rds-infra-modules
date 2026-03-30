@@ -4,7 +4,7 @@ resource "google_access_context_manager_access_policy" "policy" {
   # Policy always lives under the organization
   parent = "organizations/${var.config.org_id}"
   title  = var.config.access_policy_title
-  scopes = ["folders/${var.config.folder_id}"]
+  scopes = ["folders/${local.primary_folder_id}"]
 }
 
 resource "google_access_context_manager_access_level" "levels" {

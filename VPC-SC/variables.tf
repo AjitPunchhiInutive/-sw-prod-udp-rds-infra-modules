@@ -3,7 +3,7 @@ variable "config" {
 
   type = object({
     org_id = string
-    folder_id = string
+    folder_id = list(string)
     projects = list(object({
       project_id     = string
       project_number = string
