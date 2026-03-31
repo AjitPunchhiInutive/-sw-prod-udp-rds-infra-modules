@@ -1,7 +1,3 @@
-# =============================================================
-# outputs.tf
-# =============================================================
-
 # ─── Access Policy ──────────────────────────────────────────
 output "access_policy_name" {
   description = "Full resource name of the Access Context Manager policy."
@@ -69,6 +65,27 @@ output "audit_dataset_id" {
 output "audit_dataset_self_link" {
   description = "Self-link of the BigQuery audit log dataset."
   value       = google_bigquery_dataset.audit.self_link
+}
+
+# ─── Cloud Logging Bucket ────────────────────────────────────
+output "log_bucket_id" {
+  description = "ID of the Cloud Logging bucket with locked retention."
+  value       = google_logging_project_bucket_config.audit_log_bucket.bucket_id
+}
+
+output "log_bucket_retention_days" {
+  description = "Retention period of the Cloud Logging bucket (days)."
+  value       = google_logging_project_bucket_config.audit_log_bucket.retention_days
+}
+
+output "log_bucket_locked" {
+  description = "Whether the Cloud Logging bucket retention policy is locked (immutable)."
+  value       = google_logging_project_bucket_config.audit_log_bucket.locked
+}
+
+output "log_sink_log_bucket_name" {
+  description = "Name of the log sink pointing to the Cloud Logging bucket."
+  value       = google_logging_project_sink.audit_sink_log_bucket.name
 }
 
 # ─── Log Sink — BigQuery ─────────────────────────────────────

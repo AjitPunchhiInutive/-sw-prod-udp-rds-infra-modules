@@ -1,9 +1,11 @@
+
 variable "config" {
   description = "All configuration for VPC Service Controls — access policy, perimeter, projects, restricted services, BigQuery audit dataset, GCS log bucket, and log sinks."
 
   type = object({
+
     org_id = string
-    folder_id = list(string)
+    folder_ids = list(string)
     projects = list(object({
       project_id     = string
       project_number = string
@@ -14,7 +16,7 @@ variable "config" {
     region                 = optional(string, "us-central1")
     create_access_policy = optional(bool, true)
     access_policy_title  = optional(string, "VPC SC Access Policy")
-    existing_policy_id   = optional(string, "")  # only needed when create_access_policy = false
+    existing_policy_id   = optional(string, "")
     perimeter_name        = string
     perimeter_title       = optional(string, "VPC SC Perimeter")
     perimeter_description = optional(string, "Managed by Terraform")
@@ -103,6 +105,17 @@ variable "config" {
       log_retention_days = optional(number, 90)
     })
 
+    # ------- Log Bucket (Cloud Logging) --------------------------
+    # A dedicated Cloud Logging bucket with a LOCKED retention policy.
+    # Bucket lock prevents any reduction of the retention period — immutable.
+    log_bucket = object({
+      bucket_id        = string
+      location         = optional(string, "global")
+      description      = optional(string, "VPC SC audit log bucket")
+      retention_days   = optional(number, 365)   # Minimum retention period
+      locked           = optional(bool, true)    # true = LOCKED (irreversible)
+    })
+
     # ------- Log Sink (BigQuery) ----------------------------------
     log_sink = object({
       name        = string
@@ -129,8 +142,13 @@ variable "config" {
   }
 
   validation {
-    condition     = length(var.config.folder_id) > 0
-    error_message = "config.folder_id must not be empty — required for policy scope."
+    condition     = length(var.config.folder_ids) > 0
+    error_message = "config.folder_ids must contain at least one folder ID."
+  }
+
+  validation {
+    condition     = alltrue([for f in var.config.folder_ids : length(f) > 0])
+    error_message = "All entries in config.folder_ids must be non-empty strings."
   }
 
   validation {
