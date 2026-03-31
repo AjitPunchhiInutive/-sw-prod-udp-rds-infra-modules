@@ -20,7 +20,11 @@ locals {
     "${local.policy_name}/accessLevels/${al.name}"
   ]
   log_sink_destination_bq  = "bigquery.googleapis.com/projects/${var.config.primary_project_id}/datasets/${var.config.bigquery.audit_dataset_id}"
-  log_sink_destination_log_bucket = "logging.googleapis.com/projects/${var.config.primary_project_id}/locations/${var.config.log_bucket.location}/buckets/${var.config.log_bucket.bucket_id}"
+  log_sink_destination_log_bucket = (
+    var.config.log_bucket != null
+    ? "logging.googleapis.com/projects/${var.config.primary_project_id}/locations/${var.config.log_bucket.location}/buckets/${var.config.log_bucket.bucket_id}"
+    : null
+  )
   log_sink_destination_gcs = "storage.googleapis.com/${var.config.storage.bucket_name}"
   common_labels = merge(
     {

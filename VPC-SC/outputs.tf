@@ -1,4 +1,3 @@
-# ─── Access Policy ──────────────────────────────────────────
 output "access_policy_name" {
   description = "Full resource name of the Access Context Manager policy."
   value       = local.policy_name
@@ -69,23 +68,23 @@ output "audit_dataset_self_link" {
 
 # ─── Cloud Logging Bucket ────────────────────────────────────
 output "log_bucket_id" {
-  description = "ID of the Cloud Logging bucket with locked retention."
-  value       = google_logging_project_bucket_config.audit_log_bucket.bucket_id
+  description = "ID of the Cloud Logging bucket with locked retention. Null if not configured."
+  value       = var.config.log_bucket != null ? google_logging_project_bucket_config.audit_log_bucket[0].bucket_id : null
 }
 
 output "log_bucket_retention_days" {
-  description = "Retention period of the Cloud Logging bucket (days)."
-  value       = google_logging_project_bucket_config.audit_log_bucket.retention_days
+  description = "Retention period of the Cloud Logging bucket (days). Null if not configured."
+  value       = var.config.log_bucket != null ? google_logging_project_bucket_config.audit_log_bucket[0].retention_days : null
 }
 
 output "log_bucket_locked" {
   description = "Whether the Cloud Logging bucket retention policy is locked (immutable)."
-  value       = google_logging_project_bucket_config.audit_log_bucket.locked
+  value       = var.config.log_bucket != null ? google_logging_project_bucket_config.audit_log_bucket[0].locked : null
 }
 
 output "log_sink_log_bucket_name" {
-  description = "Name of the log sink pointing to the Cloud Logging bucket."
-  value       = google_logging_project_sink.audit_sink_log_bucket.name
+  description = "Name of the log sink pointing to the Cloud Logging bucket. Null if not configured."
+  value       = var.config.log_bucket != null ? google_logging_project_sink.audit_sink_log_bucket[0].name : null
 }
 
 # ─── Log Sink — BigQuery ─────────────────────────────────────

@@ -4,12 +4,6 @@ resource "google_access_context_manager_access_policy" "policy" {
   title  = var.config.access_policy_title
   scopes = ["folders/${local.primary_folder_id}"]
 }
-
-
-# ─────────────────────────────────────────────────────────────
-# SECTION 2: ACCESS LEVELS
-# ─────────────────────────────────────────────────────────────
-
 resource "google_access_context_manager_access_level" "levels" {
   for_each = local.access_levels_map
 
@@ -26,11 +20,6 @@ resource "google_access_context_manager_access_level" "levels" {
   depends_on = [google_access_context_manager_access_policy.policy]
 }
 
-
-# ─────────────────────────────────────────────────────────────
-# SECTION 3: VPC SERVICE PERIMETER
-# ─────────────────────────────────────────────────────────────
-
 resource "google_access_context_manager_service_perimeter" "perimeter" {
   parent         = local.policy_name
   name           = "${local.policy_name}/servicePerimeters/${var.config.perimeter_name}"
@@ -39,15 +28,11 @@ resource "google_access_context_manager_service_perimeter" "perimeter" {
   perimeter_type = "PERIMETER_TYPE_REGULAR"
 
   use_explicit_dry_run_spec = var.config.dry_run
-
-  # ── Enforced Spec (active when dry_run = false) ────────────
   status {
     resources           = local.perimeter_resources
     restricted_services = var.config.restricted_services
     access_levels       = local.access_level_names
   }
-
-  # ── Dry Run Spec (active when dry_run = true) ──────────────
   dynamic "spec" {
     for_each = var.config.dry_run ? [1] : []
     content {
@@ -59,12 +44,6 @@ resource "google_access_context_manager_service_perimeter" "perimeter" {
 
   depends_on = [google_access_context_manager_access_level.levels]
 }
-
-
-# ─────────────────────────────────────────────────────────────
-# SECTION 4: GCS BUCKET — RAW VPC SC LOG STORAGE
-# ─────────────────────────────────────────────────────────────
-
 resource "google_storage_bucket" "vpc_sc_logs" {
   name          = var.config.storage.bucket_name
   project       = var.config.primary_project_id
@@ -101,12 +80,6 @@ resource "google_storage_bucket_iam_member" "gcs_sink_writer" {
     google_logging_project_sink.audit_sink_gcs,
   ]
 }
-
-
-# ─────────────────────────────────────────────────────────────
-# SECTION 5: BIGQUERY AUDIT LOG DATASET
-# ─────────────────────────────────────────────────────────────
-
 resource "google_bigquery_dataset" "audit" {
   dataset_id                      = var.config.bigquery.audit_dataset_id
   project                         = var.config.primary_project_id
@@ -129,32 +102,20 @@ resource "google_bigquery_dataset" "audit" {
     special_group = "projectReaders"
   }
 }
-
-
-# ─────────────────────────────────────────────────────────────
-# SECTION 6: CLOUD LOGGING BUCKET + RETENTION LOCK
-# ─────────────────────────────────────────────────────────────
-# Creates a dedicated Cloud Logging bucket with a locked retention
-# policy. Once locked = true, the retention period can NEVER be
-# reduced and the lock can NEVER be removed — plan carefully.
-
 resource "google_logging_project_bucket_config" "audit_log_bucket" {
+  count = var.config.log_bucket != null ? 1 : 0
+
   project        = var.config.primary_project_id
   location       = var.config.log_bucket.location
   bucket_id      = var.config.log_bucket.bucket_id
   description    = var.config.log_bucket.description
   retention_days = var.config.log_bucket.retention_days
-
-  # LOCKED retention policy — immutable once applied.
-  # Setting locked = true means:
-  #   - retention_days can never be decreased
-  #   - lock can never be removed (terraform destroy will fail)
-  #   - logs cannot be deleted before retention period expires
   locked = var.config.log_bucket.locked
 }
 
-# Log Sink → Cloud Logging Bucket
 resource "google_logging_project_sink" "audit_sink_log_bucket" {
+  count = var.config.log_bucket != null ? 1 : 0
+
   name        = "${var.config.log_sink.name}-logbucket"
   project     = var.config.primary_project_id
   description = "VPC SC audit log sink to Cloud Logging bucket (locked retention)"
@@ -165,12 +126,6 @@ resource "google_logging_project_sink" "audit_sink_log_bucket" {
 
   depends_on = [google_logging_project_bucket_config.audit_log_bucket]
 }
-
-
-# ─────────────────────────────────────────────────────────────
-# SECTION 7: LOG SINK → BIGQUERY
-# ─────────────────────────────────────────────────────────────
-
 resource "google_logging_project_sink" "audit_sink_bq" {
   name        = var.config.log_sink.name
   project     = var.config.primary_project_id
@@ -198,12 +153,6 @@ resource "google_bigquery_dataset_iam_member" "bq_sink_writer" {
     google_logging_project_sink.audit_sink_bq,
   ]
 }
-
-
-# ─────────────────────────────────────────────────────────────
-# SECTION 8: LOG SINK → GCS
-# ─────────────────────────────────────────────────────────────
-
 resource "google_logging_project_sink" "audit_sink_gcs" {
   name        = var.config.log_sink_gcs.name
   project     = var.config.primary_project_id

@@ -1,9 +1,7 @@
-
 variable "config" {
   description = "All configuration for VPC Service Controls — access policy, perimeter, projects, restricted services, BigQuery audit dataset, GCS log bucket, and log sinks."
 
   type = object({
-
     org_id = string
     folder_ids = list(string)
     projects = list(object({
@@ -21,8 +19,6 @@ variable "config" {
     perimeter_title       = optional(string, "VPC SC Perimeter")
     perimeter_description = optional(string, "Managed by Terraform")
     dry_run = optional(bool, true)
-
-    # ------- Restricted Services ----------------------------------
     restricted_services = optional(list(string), [
       # Core Compute & Infrastructure
       "compute.googleapis.com",
@@ -77,14 +73,11 @@ variable "config" {
       "cloudsearch.googleapis.com",
     ])
 
-    # ------- Access Levels ----------------------------------------
     access_levels = optional(list(object({
       name        = string
       description = optional(string, "")
       members     = list(string)
     })), [])
-
-    # ------- BigQuery Audit Dataset -------------------------------
     bigquery = object({
       location                    = optional(string, "US")
       audit_dataset_id            = string
@@ -94,8 +87,6 @@ variable "config" {
       partition_expiration_ms     = optional(number, 7776000000)
       delete_contents_on_destroy  = optional(bool, false)
     })
-
-    # ------- GCS Log Storage Bucket -------------------------------
     storage = object({
       bucket_name        = string
       location           = optional(string, "US")
@@ -104,33 +95,23 @@ variable "config" {
       force_destroy      = optional(bool, false)
       log_retention_days = optional(number, 90)
     })
-
-    # ------- Log Bucket (Cloud Logging) --------------------------
-    # A dedicated Cloud Logging bucket with a LOCKED retention policy.
-    # Bucket lock prevents any reduction of the retention period — immutable.
-    log_bucket = object({
-      bucket_id        = string
-      location         = optional(string, "global")
-      description      = optional(string, "VPC SC audit log bucket")
-      retention_days   = optional(number, 365)   # Minimum retention period
-      locked           = optional(bool, true)    # true = LOCKED (irreversible)
-    })
-
-    # ------- Log Sink (BigQuery) ----------------------------------
+    log_bucket = optional(object({
+      bucket_id      = string
+      location       = optional(string, "global")
+      description    = optional(string, "VPC SC audit log bucket")
+      retention_days = optional(number, 365)
+      locked         = optional(bool, true)
+    }), null)
     log_sink = object({
       name        = string
       description = optional(string, "VPC SC audit log sink to BigQuery")
       filter      = optional(string, "protoPayload.status.code!=0 OR log_id(\"cloudaudit.googleapis.com/policy\")")
     })
-
-    # ------- Log Sink (GCS) ---------------------------------------
     log_sink_gcs = object({
       name        = string
       description = optional(string, "VPC SC audit log sink to GCS")
       filter      = optional(string, "protoPayload.status.code!=0 OR log_id(\"cloudaudit.googleapis.com/policy\")")
     })
-
-    # ------- Labels -----------------------------------------------
     labels = optional(map(string), {})
   })
 
