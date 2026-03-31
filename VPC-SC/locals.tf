@@ -1,5 +1,8 @@
-
 locals {
+  primary_folder_id = var.config.folder_ids[0]
+  all_folder_paths = [
+    for f in var.config.folder_ids : "folders/${f}"
+  ]
   policy_name = var.config.create_access_policy ? (
     "accessPolicies/${google_access_context_manager_access_policy.policy[0].name}"
   ) : (
@@ -16,9 +19,8 @@ locals {
     for al in var.config.access_levels :
     "${local.policy_name}/accessLevels/${al.name}"
   ]
-  primary_folder_id = var.config.folder_ids[0]
-  all_folder_paths = [for f in var.config.folder_ids : "folders/${f}"]
   log_sink_destination_bq  = "bigquery.googleapis.com/projects/${var.config.primary_project_id}/datasets/${var.config.bigquery.audit_dataset_id}"
+  log_sink_destination_log_bucket = "logging.googleapis.com/projects/${var.config.primary_project_id}/locations/${var.config.log_bucket.location}/buckets/${var.config.log_bucket.bucket_id}"
   log_sink_destination_gcs = "storage.googleapis.com/${var.config.storage.bucket_name}"
   common_labels = merge(
     {

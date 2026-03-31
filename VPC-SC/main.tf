@@ -55,6 +55,7 @@ resource "google_storage_bucket" "vpc_sc_logs" {
   force_destroy = var.config.storage.force_destroy
 
   uniform_bucket_level_access = true
+  public_access_prevention    = "enforced"
 
   versioning {
     enabled = var.config.storage.versioning_enabled
