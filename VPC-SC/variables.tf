@@ -83,16 +83,6 @@ variable "config" {
       members     = list(string)
     })), [])
 
-    # ------- GCS Log Storage Bucket -------------------------------
-    storage = object({
-      bucket_name        = string
-      location           = optional(string, "US")
-      storage_class      = optional(string, "STANDARD")
-      versioning_enabled = optional(bool, false)
-      force_destroy      = optional(bool, false)
-      log_retention_days = optional(number, 90)
-    })
-
     # ------- Labels -----------------------------------------------
     labels = optional(map(string), {})
   })

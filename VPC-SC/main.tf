@@ -61,34 +61,3 @@ resource "google_access_context_manager_service_perimeter" "perimeter" {
 
   depends_on = [google_access_context_manager_access_level.levels]
 }
-
-
-# ─────────────────────────────────────────────────────────────
-# SECTION 4: GCS BUCKET — VPC SC LOG STORAGE
-# ─────────────────────────────────────────────────────────────
-
-resource "google_storage_bucket" "vpc_sc_logs" {
-  name          = var.config.storage.bucket_name
-  project       = var.config.primary_project_id
-  location      = var.config.storage.location
-  storage_class = var.config.storage.storage_class
-  force_destroy = var.config.storage.force_destroy
-
-  uniform_bucket_level_access = true
-  public_access_prevention    = "enforced"
-
-  versioning {
-    enabled = var.config.storage.versioning_enabled
-  }
-
-  lifecycle_rule {
-    action {
-      type = "Delete"
-    }
-    condition {
-      age = var.config.storage.log_retention_days
-    }
-  }
-
-  labels = local.common_labels
-}

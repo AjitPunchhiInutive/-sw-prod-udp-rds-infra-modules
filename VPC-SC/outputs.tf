@@ -43,14 +43,3 @@ output "access_level_names" {
   description = "Full resource names of access levels bound to the perimeter."
   value       = local.access_level_names
 }
-
-# ─── GCS Log Storage ────────────────────────────────────────
-output "vpc_sc_log_bucket_name" {
-  description = "Name of the GCS bucket storing raw VPC SC audit logs."
-  value       = google_storage_bucket.vpc_sc_logs.name
-}
-
-output "vpc_sc_log_bucket_url" {
-  description = "gs:// URL of the VPC SC log storage bucket."
-  value       = google_storage_bucket.vpc_sc_logs.url
-}
