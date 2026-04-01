@@ -3,7 +3,7 @@ variable "config" {
 
   type = object({
     org_id = string
-    folder_ids = list(string)
+    folder_ids = optional(list(string),[])
     projects = list(object({
       project_id     = string
       project_number = string
@@ -120,16 +120,6 @@ variable "config" {
   validation {
     condition     = length(var.config.org_id) > 0
     error_message = "config.org_id must not be empty."
-  }
-
-  validation {
-    condition     = length(var.config.folder_ids) > 0
-    error_message = "config.folder_ids must contain at least one folder ID."
-  }
-
-  validation {
-    condition     = alltrue([for f in var.config.folder_ids : length(f) > 0])
-    error_message = "All entries in config.folder_ids must be non-empty strings."
   }
 
   validation {
