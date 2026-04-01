@@ -29,9 +29,9 @@ resource "google_access_context_manager_service_perimeter" "perimeter" {
 
   use_explicit_dry_run_spec = var.config.dry_run
   status {
-    resources           = local.perimeter_resources
-    restricted_services = var.config.restricted_services
-    access_levels       = local.access_level_names
+    resources           = var.config.dry_run ? [] : local.perimeter_resources
+    restricted_services = var.config.dry_run ? [] : var.config.restricted_services
+    access_levels       = var.config.dry_run ? [] : local.access_level_names
   }
   dynamic "spec" {
     for_each = var.config.dry_run ? [1] : []
