@@ -10,7 +10,7 @@ output "access_policy_id" {
 
 output "access_policy_primary_scope" {
   description = "Primary folder scope applied to the Access Policy (folder_ids[0])."
-  value       = "folders/${local.primary_folder_id}"
+  value       = local.primary_folder_id != null ? "folders/${local.primary_folder_id}" : null
 }
 
 output "all_folder_ids" {
@@ -66,26 +66,26 @@ output "audit_dataset_self_link" {
   value       = google_bigquery_dataset.audit.self_link
 }
 
-# # ─── Cloud Logging Bucket ────────────────────────────────────
-# output "log_bucket_id" {
-#   description = "ID of the Cloud Logging bucket with locked retention. Null if not configured."
-#   value       = var.config.log_bucket != null ? google_logging_project_bucket_config.audit_log_bucket[0].bucket_id : null
-# }
+# ─── Cloud Logging Bucket ────────────────────────────────────
+output "log_bucket_id" {
+  description = "ID of the Cloud Logging bucket with locked retention. Null if not configured."
+  value       = var.config.log_bucket != null ? google_logging_project_bucket_config.audit_log_bucket[0].bucket_id : null
+}
 
-# output "log_bucket_retention_days" {
-#   description = "Retention period of the Cloud Logging bucket (days). Null if not configured."
-#   value       = var.config.log_bucket != null ? google_logging_project_bucket_config.audit_log_bucket[0].retention_days : null
-# }
+output "log_bucket_retention_days" {
+  description = "Retention period of the Cloud Logging bucket (days). Null if not configured."
+  value       = var.config.log_bucket != null ? google_logging_project_bucket_config.audit_log_bucket[0].retention_days : null
+}
 
-# output "log_bucket_locked" {
-#   description = "Whether the Cloud Logging bucket retention policy is locked (immutable)."
-#   value       = var.config.log_bucket != null ? google_logging_project_bucket_config.audit_log_bucket[0].locked : null
-# }
+output "log_bucket_locked" {
+  description = "Whether the Cloud Logging bucket retention policy is locked (immutable)."
+  value       = var.config.log_bucket != null ? google_logging_project_bucket_config.audit_log_bucket[0].locked : null
+}
 
-# output "log_sink_log_bucket_name" {
-#   description = "Name of the log sink pointing to the Cloud Logging bucket. Null if not configured."
-#   value       = var.config.log_bucket != null ? google_logging_project_sink.audit_sink_log_bucket[0].name : null
-# }
+output "log_sink_log_bucket_name" {
+  description = "Name of the log sink pointing to the Cloud Logging bucket. Null if not configured."
+  value       = var.config.log_bucket != null ? google_logging_project_sink.audit_sink_log_bucket[0].name : null
+}
 
 # ─── Log Sink — BigQuery ─────────────────────────────────────
 output "log_sink_bq_name" {
