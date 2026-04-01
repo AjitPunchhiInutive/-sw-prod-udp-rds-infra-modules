@@ -1,5 +1,5 @@
 locals {
-  primary_folder_id = var.config.folder_ids[0]
+  primary_folder_id = length(var.config.folder_ids) > 0 ? var.config.folder_ids[0] : null
   all_folder_paths = [
     for f in var.config.folder_ids : "folders/${f}"
   ]
