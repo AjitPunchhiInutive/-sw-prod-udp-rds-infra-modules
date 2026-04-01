@@ -98,10 +98,10 @@ output "log_sink_bq_writer_identity" {
   value       = google_logging_project_sink.audit_sink_bq.writer_identity
 }
 
-output "log_sink_bq_destination" {
-  description = "Full BigQuery destination URI for the log sink."
-  value       = local.log_sink_destination_bq
-}
+# output "log_sink_bq_destination" {
+#   description = "Full BigQuery destination URI for the log sink."
+#   value       = local.log_sink_destination_bq
+# }
 
 # ─── Log Sink — GCS ──────────────────────────────────────────
 output "log_sink_gcs_name" {
@@ -114,7 +114,7 @@ output "log_sink_gcs_writer_identity" {
   value       = google_logging_project_sink.audit_sink_gcs.writer_identity
 }
 
-output "log_sink_gcs_destination" {
-  description = "Full GCS destination URI for the log sink."
-  value       = local.log_sink_destination_gcs
-}
+# output "log_sink_gcs_destination" {
+#   description = "Full GCS destination URI for the log sink."
+#   value       = local.log_sink_destination_gcs
+# }

@@ -102,65 +102,65 @@ resource "google_bigquery_dataset" "audit" {
     special_group = "projectReaders"
   }
 }
-resource "google_logging_project_bucket_config" "audit_log_bucket" {
-  count = var.config.log_bucket != null ? 1 : 0
+# resource "google_logging_project_bucket_config" "audit_log_bucket" {
+#   count = var.config.log_bucket != null ? 1 : 0
 
-  project        = var.config.primary_project_id
-  location       = var.config.log_bucket.location
-  bucket_id      = var.config.log_bucket.bucket_id
-  description    = var.config.log_bucket.description
-  retention_days = var.config.log_bucket.retention_days
-  locked = var.config.log_bucket.locked
-}
+#   project        = var.config.primary_project_id
+#   location       = var.config.log_bucket.location
+#   bucket_id      = var.config.log_bucket.bucket_id
+#   description    = var.config.log_bucket.description
+#   retention_days = var.config.log_bucket.retention_days
+#   locked = var.config.log_bucket.locked
+# }
 
-resource "google_logging_project_sink" "audit_sink_log_bucket" {
-  count = var.config.log_bucket != null ? 1 : 0
+# resource "google_logging_project_sink" "audit_sink_log_bucket" {
+#   count = var.config.log_bucket != null ? 1 : 0
 
-  name        = "${var.config.log_sink.name}-logbucket"
-  project     = var.config.primary_project_id
-  description = "VPC SC audit log sink to Cloud Logging bucket (locked retention)"
-  destination = local.log_sink_destination_log_bucket
-  filter      = var.config.log_sink.filter
+#   name        = "${var.config.log_sink.name}-logbucket"
+#   project     = var.config.primary_project_id
+#   description = "VPC SC audit log sink to Cloud Logging bucket (locked retention)"
+#   destination = local.log_sink_destination_log_bucket
+#   filter      = var.config.log_sink.filter
 
-  unique_writer_identity = true
+#   unique_writer_identity = true
 
-  depends_on = [google_logging_project_bucket_config.audit_log_bucket]
-}
-resource "google_logging_project_sink" "audit_sink_bq" {
-  name        = var.config.log_sink.name
-  project     = var.config.primary_project_id
-  description = var.config.log_sink.description
-  destination = local.log_sink_destination_bq
-  filter      = var.config.log_sink.filter
+#   depends_on = [google_logging_project_bucket_config.audit_log_bucket]
+# }
+# resource "google_logging_project_sink" "audit_sink_bq" {
+#   name        = var.config.log_sink.name
+#   project     = var.config.primary_project_id
+#   description = var.config.log_sink.description
+#   destination = local.log_sink_destination_bq
+#   filter      = var.config.log_sink.filter
 
-  unique_writer_identity = true
+#   unique_writer_identity = true
 
-  bigquery_options {
-    use_partitioned_tables = true
-  }
+#   bigquery_options {
+#     use_partitioned_tables = true
+#   }
 
-  depends_on = [google_bigquery_dataset.audit]
-}
+#   depends_on = [google_bigquery_dataset.audit]
+# }
 
-resource "google_bigquery_dataset_iam_member" "bq_sink_writer" {
-  project    = var.config.primary_project_id
-  dataset_id = google_bigquery_dataset.audit.dataset_id
-  role       = "roles/bigquery.dataEditor"
-  member     = google_logging_project_sink.audit_sink_bq.writer_identity
+# resource "google_bigquery_dataset_iam_member" "bq_sink_writer" {
+#   project    = var.config.primary_project_id
+#   dataset_id = google_bigquery_dataset.audit.dataset_id
+#   role       = "roles/bigquery.dataEditor"
+#   member     = google_logging_project_sink.audit_sink_bq.writer_identity
 
-  depends_on = [
-    google_bigquery_dataset.audit,
-    google_logging_project_sink.audit_sink_bq,
-  ]
-}
-resource "google_logging_project_sink" "audit_sink_gcs" {
-  name        = var.config.log_sink_gcs.name
-  project     = var.config.primary_project_id
-  description = var.config.log_sink_gcs.description
-  destination = local.log_sink_destination_gcs
-  filter      = var.config.log_sink_gcs.filter
+#   depends_on = [
+#     google_bigquery_dataset.audit,
+#     google_logging_project_sink.audit_sink_bq,
+#   ]
+# }
+# resource "google_logging_project_sink" "audit_sink_gcs" {
+#   name        = var.config.log_sink_gcs.name
+#   project     = var.config.primary_project_id
+#   description = var.config.log_sink_gcs.description
+#   destination = local.log_sink_destination_gcs
+#   filter      = var.config.log_sink_gcs.filter
 
-  unique_writer_identity = true
+#   unique_writer_identity = true
 
-  depends_on = [google_storage_bucket.vpc_sc_logs]
-}
+#   depends_on = [google_storage_bucket.vpc_sc_logs]
+# }

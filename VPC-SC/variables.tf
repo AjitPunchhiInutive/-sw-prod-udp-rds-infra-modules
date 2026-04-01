@@ -1,9 +1,12 @@
+
 variable "config" {
-  description = "All configuration for VPC Service Controls — access policy, perimeter, projects, restricted services, BigQuery audit dataset, GCS log bucket, and log sinks."
+  description = "All configuration for VPC Service Controls — access policy, perimeter, projects, restricted services, and GCS log bucket."
 
   type = object({
+
+  
     org_id = string
-    folder_ids = optional(list(string),[])
+    folder_ids = optional(list(string), [])
     projects = list(object({
       project_id     = string
       project_number = string
@@ -12,7 +15,7 @@ variable "config" {
     primary_project_id     = string
     primary_project_number = string
     region                 = optional(string, "us-central1")
-    create_access_policy = optional(bool, true)
+    create_access_policy = optional(bool, false)
     access_policy_title  = optional(string, "VPC SC Access Policy")
     existing_policy_id   = optional(string, "")
     perimeter_name        = string
@@ -73,20 +76,14 @@ variable "config" {
       "cloudsearch.googleapis.com",
     ])
 
+    # ------- Access Levels ----------------------------------------
     access_levels = optional(list(object({
       name        = string
       description = optional(string, "")
       members     = list(string)
     })), [])
-    bigquery = object({
-      location                    = optional(string, "US")
-      audit_dataset_id            = string
-      audit_friendly_name         = optional(string, "VPC SC Audit Logs")
-      audit_description           = optional(string, "Stores VPC SC audit and violation logs")
-      default_table_expiration_ms = optional(number, 7776000000)
-      partition_expiration_ms     = optional(number, 7776000000)
-      delete_contents_on_destroy  = optional(bool, false)
-    })
+
+    # ------- GCS Log Storage Bucket -------------------------------
     storage = object({
       bucket_name        = string
       location           = optional(string, "US")
@@ -95,23 +92,8 @@ variable "config" {
       force_destroy      = optional(bool, false)
       log_retention_days = optional(number, 90)
     })
-    log_bucket = optional(object({
-      bucket_id      = string
-      location       = optional(string, "global")
-      description    = optional(string, "VPC SC audit log bucket")
-      retention_days = optional(number, 365)
-      locked         = optional(bool, true)
-    }), null)
-    log_sink = object({
-      name        = string
-      description = optional(string, "VPC SC audit log sink to BigQuery")
-      filter      = optional(string, "protoPayload.status.code!=0 OR log_id(\"cloudaudit.googleapis.com/policy\")")
-    })
-    log_sink_gcs = object({
-      name        = string
-      description = optional(string, "VPC SC audit log sink to GCS")
-      filter      = optional(string, "protoPayload.status.code!=0 OR log_id(\"cloudaudit.googleapis.com/policy\")")
-    })
+
+    # ------- Labels -----------------------------------------------
     labels = optional(map(string), {})
   })
 
@@ -135,11 +117,6 @@ variable "config" {
   validation {
     condition     = can(regex("^[a-zA-Z][a-zA-Z0-9_]{0,49}$", var.config.perimeter_name))
     error_message = "perimeter_name must start with a letter, max 50 chars, letters/digits/underscores only — no hyphens."
-  }
-
-  validation {
-    condition     = can(regex("^[a-z][a-z0-9_]*$", var.config.bigquery.audit_dataset_id))
-    error_message = "bigquery.audit_dataset_id must start with a letter and contain only lowercase letters, numbers, or underscores."
   }
 
   validation {
