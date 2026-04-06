@@ -178,10 +178,10 @@ variable "location" {
   description = "Bucket location."
   type        = string
   default     = null
-  validation {
-    condition     = var.bucket_create != true || var.location != null
-    error_message = "Bucket location needs to be defined when creating a bucket."
-  }
+  # validation {
+  #   condition     = var.bucket_create != true || var.location != null
+  #   error_message = "Bucket location needs to be defined when creating a bucket."
+  # }
 }
 
 variable "logging_config" {
@@ -285,18 +285,18 @@ variable "project_id" {
   type        = string
   nullable    = true
   default     = null
-  validation {
-    condition = (
-      var.bucket_create != true || var.project_id != null
-    )
-    error_message = "Project id needs to be defined when creating a bucket."
-  }
-  validation {
-    condition = (
-      try(var.notification_config.create_topic.create, null) != true || var.project_id != null
-    )
-    error_message = "Project id needs to be defined when creating a notification topic."
-  }
+  # validation {
+  #   condition = (
+  #     var.bucket_create != true || var.project_id != null
+  #   )
+  #   error_message = "Project id needs to be defined when creating a bucket."
+  # }
+  # validation {
+  #   condition = (
+  #     try(var.notification_config.create_topic.create, null) != true || var.project_id != null
+  #   )
+  #   error_message = "Project id needs to be defined when creating a notification topic."
+  # }
 }
 
 variable "public_access_prevention" {
