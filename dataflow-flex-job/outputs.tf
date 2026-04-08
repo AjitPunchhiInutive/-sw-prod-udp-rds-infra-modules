@@ -1,24 +1,11 @@
-output "job" {
-  description = "Dataflow Flex Template job attributes."
+output "jobs" {
+  description = "Map of deployed Dataflow Flex Template job attributes keyed by Terraform resource key."
   value = {
-    name   = google_dataflow_flex_template_job.main.name
-    job_id = google_dataflow_flex_template_job.main.job_id
-    state  = google_dataflow_flex_template_job.main.state
-    region = google_dataflow_flex_template_job.main.region
+    for k, v in google_dataflow_flex_template_job.main : k => {
+      name   = v.name
+      job_id = v.job_id
+      state  = v.state
+      region = v.region
+    }
   }
-}
-
-output "job_name" {
-  description = "Full job name including the random suffix."
-  value       = google_dataflow_flex_template_job.main.name
-}
-
-output "job_id" {
-  description = "Unique Dataflow job ID."
-  value       = google_dataflow_flex_template_job.main.job_id
-}
-
-output "job_suffix" {
-  description = "Random hex suffix appended to the job name."
-  value       = random_id.job_suffix.hex
 }

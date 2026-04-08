@@ -1,37 +1,37 @@
 locals {
-  ip_configuration = var.use_public_ips ? "WORKER_IP_PUBLIC" : "WORKER_IP_PRIVATE"
+  deploy_jobs = { for k, v in var.jobs : k => v if v.deploy }
 }
 
 resource "random_id" "job_suffix" {
+  for_each    = local.deploy_jobs
   byte_length = 4
 }
 
 resource "google_dataflow_flex_template_job" "main" {
+  for_each = local.deploy_jobs
   provider = google-beta
 
-  project = var.project_id
-  region  = var.region
-  name    = "${var.name}-${random_id.job_suffix.hex}"
+  project = each.value.project_id
+  region  = each.value.region
+  name    = "${each.value.job_name}-${random_id.job_suffix[each.key].hex}"
 
-  container_spec_gcs_path = var.container_spec_gcs_path
+  container_spec_gcs_path = each.value.container_spec_gcs_path
 
-  machine_type = var.machine_type
-  max_workers  = var.max_workers
-  num_workers  = var.num_workers
+  machine_type     = each.value.machine_type
+  num_workers      = each.value.num_workers
+  max_workers      = each.value.max_workers
+  staging_location = each.value.staging_location
+  temp_location    = each.value.temp_location
 
-  staging_location = var.staging_location
-  temp_location    = var.temp_location
+  subnetwork            = each.value.subnetwork
+  ip_configuration      = each.value.ip_configuration
+  service_account_email = each.value.service_account_email
 
-  subnetwork       = var.subnetwork
-  ip_configuration = local.ip_configuration
+  enable_streaming_engine      = each.value.enable_streaming_engine
+  skip_wait_on_job_termination = each.value.skip_wait_on_job_termination
+  additional_experiments       = each.value.additional_experiments
 
-  service_account_email = var.service_account_email
-
-  enable_streaming_engine      = var.enable_streaming_engine
-  skip_wait_on_job_termination = var.skip_wait_on_job_termination
-  additional_experiments       = var.additional_experiments
-
-  parameters = var.parameters
-  labels     = var.labels
-  on_delete  = var.on_delete
+  parameters = each.value.parameters
+  labels     = each.value.labels
+  on_delete  = each.value.on_delete
 }

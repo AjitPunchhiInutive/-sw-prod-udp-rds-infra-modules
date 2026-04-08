@@ -1,107 +1,40 @@
-variable "project_id" {
-  description = "Project ID where the Dataflow job will run."
-  type        = string
-}
-
-variable "region" {
-  description = "Region for the Dataflow job."
-  type        = string
-}
-
-variable "name" {
-  description = "Base name for the Dataflow Flex Template job. A random suffix is appended to prevent name collision on restart."
-  type        = string
-}
-
-variable "container_spec_gcs_path" {
-  description = "GCS path to the Dataflow Flex Template container spec JSON file."
-  type        = string
-}
-
-variable "staging_location" {
-  description = "GCS path for Dataflow staging files."
-  type        = string
-}
-
-variable "temp_location" {
-  description = "GCS path for Dataflow temporary files."
-  type        = string
-}
-
-variable "service_account_email" {
-  description = "Service account email for Dataflow worker VMs."
-  type        = string
-}
-
-variable "labels" {
-  description = "Labels to apply to the Dataflow job."
-  type        = map(string)
-  default     = {}
+variable "jobs" {
+  description = "Map of Dataflow Flex Template jobs. Each key is the Terraform resource key. Set deploy = false to skip a job without removing its YAML."
   nullable    = false
-}
 
-variable "machine_type" {
-  description = "Machine type for Dataflow worker VMs."
-  type        = string
-  default     = "n1-standard-2"
-}
+  type = map(object({
+    deploy                  = optional(bool, true)
+    project_id              = string
+    region                  = string
+    job_name                = string
+    on_delete               = optional(string, "drain")
+    container_spec_gcs_path = string
+    service_account_email   = string
+    machine_type            = optional(string, "n1-standard-2")
+    num_workers             = optional(number, 1)
+    max_workers             = optional(number, 100)
+    enable_streaming_engine      = optional(bool, true)
+    ip_configuration             = optional(string, "WORKER_IP_PRIVATE")
+    skip_wait_on_job_termination = optional(bool, true)
+    staging_location        = string
+    temp_location           = string
+    subnetwork              = optional(string, null)
+    additional_experiments  = optional(list(string), [])
+    parameters              = optional(map(string), {})
+    labels                  = optional(map(string), {})
+  }))
 
-variable "max_workers" {
-  description = "Maximum number of Dataflow worker VMs."
-  type        = number
-  default     = 100
-}
-
-variable "num_workers" {
-  description = "Initial number of Dataflow worker VMs."
-  type        = number
-  default     = 1
-}
-
-variable "subnetwork" {
-  description = "Subnetwork self-link for Dataflow workers. Set to null to use the default network."
-  type        = string
-  default     = null
-}
-
-variable "use_public_ips" {
-  description = "Assign public IPs to Dataflow workers."
-  type        = bool
-  default     = false
-}
-
-variable "enable_streaming_engine" {
-  description = "Enable Dataflow Streaming Engine."
-  type        = bool
-  default     = true
-}
-
-variable "skip_wait_on_job_termination" {
-  description = "Prevent Terraform from waiting for the job to terminate. Required for streaming jobs."
-  type        = bool
-  default     = true
-}
-
-variable "additional_experiments" {
-  description = "Additional experiment flags to pass to the Dataflow job."
-  type        = list(string)
-  default     = []
-  nullable    = false
-}
-
-variable "parameters" {
-  description = "Pipeline-specific parameters passed to the Flex Template."
-  type        = map(string)
-  default     = {}
-  nullable    = false
-}
-
-variable "on_delete" {
-  description = "Action when the resource is deleted. One of drain or cancel."
-  type        = string
-  default     = "drain"
   validation {
-    condition     = contains(["drain", "cancel"], var.on_delete)
+    condition = alltrue([
+      for k, v in var.jobs : contains(["drain", "cancel"], v.on_delete)
+    ])
     error_message = "on_delete must be one of: drain, cancel."
+  }
+
+  validation {
+    condition = alltrue([
+      for k, v in var.jobs : contains(["WORKER_IP_PRIVATE", "WORKER_IP_PUBLIC"], v.ip_configuration)
+    ])
+    error_message = "ip_configuration must be one of: WORKER_IP_PRIVATE, WORKER_IP_PUBLIC."
   }
 }
