@@ -1,57 +1,107 @@
-variable "config" {
-  description = "Configuration for the Dataflow Flex Template streaming job."
+variable "project_id" {
+  description = "Project ID where the Dataflow job will run."
+  type        = string
+}
 
-  type = object({
-    project_id  = string
-    region      = string
-    environment = optional(string, "dev")
-    labels      = optional(map(string), {})
+variable "region" {
+  description = "Region for the Dataflow job."
+  type        = string
+}
 
-    job_name                = string
-    container_spec_gcs_path = string
+variable "name" {
+  description = "Base name for the Dataflow Flex Template job. A random suffix is appended to prevent name collision on restart."
+  type        = string
+}
 
-    staging_location = string
-    temp_location    = string
+variable "container_spec_gcs_path" {
+  description = "GCS path to the Dataflow Flex Template container spec JSON file."
+  type        = string
+}
 
-    machine_type = optional(string, "n1-standard-2")
-    max_workers  = optional(number, 100)
-    num_workers  = optional(number, 1)
+variable "staging_location" {
+  description = "GCS path for Dataflow staging files."
+  type        = string
+}
 
-    service_account_email = string
+variable "temp_location" {
+  description = "GCS path for Dataflow temporary files."
+  type        = string
+}
 
-    subnetwork     = optional(string, "")
-    use_public_ips = optional(bool, false)
+variable "service_account_email" {
+  description = "Service account email for Dataflow worker VMs."
+  type        = string
+}
 
-    enable_streaming_engine      = optional(bool, true)
-    skip_wait_on_job_termination = optional(bool, true)
-    additional_experiments       = optional(list(string), [])
+variable "labels" {
+  description = "Labels to apply to the Dataflow job."
+  type        = map(string)
+  default     = {}
+  nullable    = false
+}
 
-    parameters = optional(map(string), {})
-    on_delete  = optional(string, "drain")
-  })
+variable "machine_type" {
+  description = "Machine type for Dataflow worker VMs."
+  type        = string
+  default     = "n1-standard-2"
+}
 
+variable "max_workers" {
+  description = "Maximum number of Dataflow worker VMs."
+  type        = number
+  default     = 100
+}
+
+variable "num_workers" {
+  description = "Initial number of Dataflow worker VMs."
+  type        = number
+  default     = 1
+}
+
+variable "subnetwork" {
+  description = "Subnetwork self-link for Dataflow workers. Set to null to use the default network."
+  type        = string
+  default     = null
+}
+
+variable "use_public_ips" {
+  description = "Assign public IPs to Dataflow workers."
+  type        = bool
+  default     = false
+}
+
+variable "enable_streaming_engine" {
+  description = "Enable Dataflow Streaming Engine."
+  type        = bool
+  default     = true
+}
+
+variable "skip_wait_on_job_termination" {
+  description = "Prevent Terraform from waiting for the job to terminate. Required for streaming jobs."
+  type        = bool
+  default     = true
+}
+
+variable "additional_experiments" {
+  description = "Additional experiment flags to pass to the Dataflow job."
+  type        = list(string)
+  default     = []
+  nullable    = false
+}
+
+variable "parameters" {
+  description = "Pipeline-specific parameters passed to the Flex Template."
+  type        = map(string)
+  default     = {}
+  nullable    = false
+}
+
+variable "on_delete" {
+  description = "Action when the resource is deleted. One of drain or cancel."
+  type        = string
+  default     = "drain"
   validation {
-    condition     = length(var.config.project_id) > 0
-    error_message = "config.project_id must not be empty."
-  }
-
-  validation {
-    condition     = length(var.config.container_spec_gcs_path) > 0
-    error_message = "config.container_spec_gcs_path must not be empty."
-  }
-
-  validation {
-    condition     = length(var.config.service_account_email) > 0
-    error_message = "config.service_account_email must not be empty."
-  }
-
-  validation {
-    condition     = contains(["drain", "cancel"], var.config.on_delete)
-    error_message = "config.on_delete must be one of: drain, cancel."
-  }
-
-  validation {
-    condition     = contains(["dev", "staging", "prod"], var.config.environment)
-    error_message = "config.environment must be one of: dev, staging, prod."
+    condition     = contains(["drain", "cancel"], var.on_delete)
+    error_message = "on_delete must be one of: drain, cancel."
   }
 }
