@@ -18,6 +18,7 @@ variable "jobs" {
     skip_wait_on_job_termination = optional(bool, true)
     staging_location             = string
     temp_location                = string
+    network                      = optional(string, null)
     subnetwork                   = optional(string, null)
     additional_experiments       = optional(list(string), [])
     parameters                   = optional(map(string), {})

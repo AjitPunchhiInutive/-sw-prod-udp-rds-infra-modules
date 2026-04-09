@@ -20,6 +20,7 @@ resource "google_dataflow_flex_template_job" "main" {
   staging_location = each.value.staging_location
   temp_location    = each.value.temp_location
 
+  network               = each.value.network
   subnetwork            = each.value.subnetwork
   ip_configuration      = each.value.ip_configuration
   service_account_email = each.value.service_account_email
