@@ -96,8 +96,8 @@ locals {
       display_name   = c.display_name
       description    = c.description
       parent         = local.parent
-      # Constraint name used in the enforcement policy, e.g. "customConstraints/custom.xxx"
-      constraint_name = regex("(customConstraints/.+)$", c.name)[0]
+      # Constraint name used in the enforcement policy, e.g. "custom.xxx" (no customConstraints/ prefix)
+      constraint_name = regex("customConstraints/(.+)$", c.name)[0]
     }
   } : {}
 }
