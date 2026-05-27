@@ -98,7 +98,7 @@ resource "google_org_policy_policy" "managed_boolean_policies" {
 resource "google_org_policy_custom_constraint" "custom_policies" {
   for_each = local.custom_policies
 
-  name           = each.value.name
+  name           = each.key   # just "custom.{suffix}" — provider builds full path from parent + name
   resource_types = [each.value.resource_types]
   method_types   = each.value.method_types
   condition      = each.value.condition
@@ -106,7 +106,6 @@ resource "google_org_policy_custom_constraint" "custom_policies" {
   display_name   = each.value.display_name
   description    = each.value.description
 
-  # Parent must be the organization (extracted from the constraint name)
   parent = "organizations/${regex("organizations/([^/]+)/", each.value.name)[0]}"
 }
 
