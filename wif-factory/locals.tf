@@ -66,7 +66,7 @@ locals {
             key       = "${f.folder_id}-${role}"
             folder_id = f.folder_id
             role      = role
-            sa_email  = google_service_account.sa[item.sa_account_id].email
+            sa_email  = google_service_account.github_wif["${item.project_id}-${item.sa_account_id}"].email
           }
         ]
       ]
