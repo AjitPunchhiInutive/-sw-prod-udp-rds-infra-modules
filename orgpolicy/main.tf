@@ -119,7 +119,9 @@ resource "google_org_policy_policy" "custom_policies" {
   parent = each.value.parent
 
   spec {
-    rules {}
+    rules {
+      enforce = "TRUE"
+    }
   }
 
   depends_on = [google_org_policy_custom_constraint.custom_policies]
