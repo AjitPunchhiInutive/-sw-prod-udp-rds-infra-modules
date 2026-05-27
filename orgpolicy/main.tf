@@ -94,6 +94,38 @@ resource "google_org_policy_policy" "managed_boolean_policies" {
   }
 }
 
+# Custom constraint definition (org-level resource)
+resource "google_org_policy_custom_constraint" "custom_policies" {
+  for_each = local.custom_policies
+
+  name           = each.value.name
+  resource_types = [each.value.resource_types]
+  method_types   = each.value.method_types
+  condition      = each.value.condition
+  action_type    = each.value.action_type
+  display_name   = each.value.display_name
+  description    = each.value.description
+
+  # Parent must be the organization (extracted from the constraint name)
+  parent = "organizations/${regex("organizations/([^/]+)/", each.value.name)[0]}"
+}
+
+# Custom constraint enforcement at folder or project level
+resource "google_org_policy_policy" "custom_policies" {
+  for_each = local.custom_policies
+
+  name   = "${each.value.parent}/policies/${each.value.constraint_name}"
+  parent = each.value.parent
+
+  spec {
+    rules {
+      enforce = "TRUE"
+    }
+  }
+
+  depends_on = [google_org_policy_custom_constraint.custom_policies]
+}
+
 # V2 — Managed list (.managed. constraints — folder or project)
 resource "google_org_policy_policy" "managed_list_policies" {
   for_each = local.managed_list_policies

@@ -2,9 +2,12 @@ locals {
 
   is_folder  = var.org_policies.folder_id != null
   is_project = var.org_policies.project_id != null
+  is_org     = var.org_policies.org_id != null
 
   parent = local.is_folder ? "folders/${var.org_policies.folder_id}" : (
-    local.is_project ? "projects/${var.org_policies.project_id}" : null
+    local.is_project ? "projects/${var.org_policies.project_id}" : (
+      local.is_org ? "organizations/${var.org_policies.org_id}" : null
+    )
   )
 
   # Split keys by whether constraint name contains ".managed."
@@ -73,6 +76,25 @@ locals {
       suggested_value     = var.org_policies.policy_list[k].suggested_value
       status              = var.org_policies.policy_list[k].status
       values              = var.org_policies.policy_list[k].values
+    }
+  } : {}
+
+  # Custom constraints — keyed by the short constraint name extracted from the full resource name
+  # e.g. "organizations/728935495814/customConstraints/custom.enforceDataExchangeDiscovery"
+  #   => key: "custom.enforceDataExchangeDiscovery"
+  custom_policies = var.org_policies.deploy && local.parent != null ? {
+    for c in var.org_policies.policy_custom :
+    regex("customConstraints/(.+)$", c.name)[0] => {
+      name           = c.name
+      resource_types = c.resource_types
+      method_types   = c.method_types
+      condition      = c.condition
+      action_type    = c.action_type
+      display_name   = c.display_name
+      description    = c.description
+      parent         = local.parent
+      # Constraint name used in the enforcement policy, e.g. "customConstraints/custom.xxx"
+      constraint_name = regex("(customConstraints/.+)$", c.name)[0]
     }
   } : {}
 }
