@@ -63,9 +63,9 @@ resource "google_pubsub_topic" "default" {
 
 resource "google_pubsub_subscription" "default" {
   for_each                     = var.subscriptions
-  project                      = local.project_id
+  project                      = each.value.project_id
   name                         = each.key
-  topic                        = google_pubsub_topic.default.name
+  topic                        = google_pubsub_topic.default.id
   labels                       = coalesce(each.value.labels, var.labels)
   ack_deadline_seconds         = each.value.ack_deadline_seconds
   message_retention_duration   = each.value.message_retention_duration
