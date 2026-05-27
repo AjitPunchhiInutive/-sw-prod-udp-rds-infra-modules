@@ -5,6 +5,7 @@ variable "org_policies" {
     deploy     = bool
     folder_id  = optional(string, null)   # Set this for Folder-level policy
     project_id = optional(string, null)   # Set this for Project-level policy
+    # added for custom policy
     org_id     = optional(string, null)   # Set this for Org-level policy (custom constraints only)
     policy_boolean = optional(map(bool), {})
     policy_list = optional(map(object({
@@ -13,6 +14,7 @@ variable "org_policies" {
       status              = bool
       values              = list(string)
     })), {})
+    # added for custom policy
     policy_custom = optional(list(object({
       name           = string           # Full constraint name: organizations/{org_id}/customConstraints/custom.xxx
       resource_types = string           # Single resource type, e.g. analyticshub.googleapis.com/DataExchange
@@ -25,6 +27,7 @@ variable "org_policies" {
   })
 
 
+  # added for custom policy
   validation {
     condition = length([
       for v in [var.org_policies.folder_id, var.org_policies.project_id, var.org_policies.org_id] : v if v != null
@@ -32,6 +35,7 @@ variable "org_policies" {
     error_message = "Only one of 'folder_id', 'project_id', or 'org_id' may be set at a time."
   }
 
+  # added for custom policy
   validation {
     condition = (
       !var.org_policies.deploy ||

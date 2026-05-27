@@ -1,9 +1,11 @@
 
+# added for custom policy
 output "custom_constraint_ids" {
   description = "IDs of custom org policy constraints"
   value       = { for k, v in google_org_policy_custom_constraint.custom_policies : k => v.id }
 }
 
+# added for custom policy
 output "custom_policy_ids" {
   description = "IDs of custom org policy enforcement policies"
   value       = { for k, v in google_org_policy_policy.custom_policies : k => v.id }

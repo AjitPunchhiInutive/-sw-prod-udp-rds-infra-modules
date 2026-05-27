@@ -94,6 +94,7 @@ resource "google_org_policy_policy" "managed_boolean_policies" {
   }
 }
 
+# added for custom policy
 # Custom constraint definition (org-level resource)
 resource "google_org_policy_custom_constraint" "custom_policies" {
   for_each = local.custom_policies
@@ -109,6 +110,7 @@ resource "google_org_policy_custom_constraint" "custom_policies" {
   parent = "organizations/${regex("organizations/([^/]+)/", each.value.name)[0]}"
 }
 
+# added for custom policy
 # Custom constraint enforcement at folder or project level
 resource "google_org_policy_policy" "custom_policies" {
   for_each = local.custom_policies
@@ -117,9 +119,7 @@ resource "google_org_policy_policy" "custom_policies" {
   parent = each.value.parent
 
   spec {
-    rules {
-      enforce = "TRUE"
-    }
+    rules {}
   }
 
   depends_on = [google_org_policy_custom_constraint.custom_policies]

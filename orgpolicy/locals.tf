@@ -2,8 +2,10 @@ locals {
 
   is_folder  = var.org_policies.folder_id != null
   is_project = var.org_policies.project_id != null
+  # added for custom policy
   is_org     = var.org_policies.org_id != null
 
+  # added for custom policy
   parent = local.is_folder ? "folders/${var.org_policies.folder_id}" : (
     local.is_project ? "projects/${var.org_policies.project_id}" : (
       local.is_org ? "organizations/${var.org_policies.org_id}" : null
@@ -79,6 +81,7 @@ locals {
     }
   } : {}
 
+  # added for custom policy
   # Custom constraints — keyed by the short constraint name extracted from the full resource name
   # e.g. "organizations/728935495814/customConstraints/custom.enforceDataExchangeDiscovery"
   #   => key: "custom.enforceDataExchangeDiscovery"
