@@ -27,7 +27,7 @@ resource "google_dataflow_flex_template_job" "main" {
 
   enable_streaming_engine      = each.value.enable_streaming_engine
   skip_wait_on_job_termination = each.value.skip_wait_on_job_termination
-  additional_experiments       = each.value.additional_experiments
+  additional_experiments       = concat(each.value.additional_experiments, each.value.additional_pipeline_options)
 
   parameters = each.value.parameters
   labels     = each.value.labels

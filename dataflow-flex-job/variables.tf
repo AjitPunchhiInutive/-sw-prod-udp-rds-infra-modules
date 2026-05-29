@@ -21,8 +21,10 @@ variable "jobs" {
     network                      = optional(string, null)
     subnetwork                   = optional(string, null)
     additional_experiments       = optional(list(string), [])
+    additional_pipeline_options  = optional(list(string), [])
     parameters                   = optional(map(string), {})
     labels                       = optional(map(string), {})
+    bucket_name                  = optional(string, null)
   }))
 
   validation {
