@@ -82,6 +82,7 @@ variable "schema" {
 variable "subscriptions" {
   description = "Topic subscriptions. Also define push configs for push subscriptions. If options is set to null subscription defaults will be used. Labels default to topic labels if set to null."
   type = map(object({
+    project_id                   = string
     ack_deadline_seconds         = optional(number)
     enable_exactly_once_delivery = optional(bool, false)
     enable_message_ordering      = optional(bool, false)
