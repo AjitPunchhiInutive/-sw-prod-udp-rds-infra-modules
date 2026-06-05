@@ -22,7 +22,7 @@ locals {
         zone_name              = zone
         asset_name             = asset
         resource_name          = asset_data.resource_name
-        resource_project       = coalesce(lookup(asset_data, "resource_project_id", null), var.project_id)  # ← FIXED
+        resource_project       = coalesce(lookup(asset_data, "resource_project_id", null), var.project_id)
         cron_schedule          = asset_data.discovery_spec_enabled ? asset_data.cron_schedule : null
         discovery_spec_enabled = asset_data.discovery_spec_enabled
         resource_spec_type     = asset_data.resource_spec_type
@@ -110,7 +110,7 @@ resource "google_dataplex_asset" "asset" {
 
   resource_spec {
     name = format("projects/%s/%s/%s",
-      each.value.resource_project,
+      each.value.resource_project_id,
       local.resource_type_mapping[each.value.resource_spec_type],
       each.value.resource_name
     )
