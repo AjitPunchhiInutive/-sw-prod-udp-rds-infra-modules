@@ -17,18 +17,18 @@
 locals {
   prefix = var.prefix == null ? "" : "${var.prefix}-"
   zone_assets = flatten([
-    for zone, zones_info in var.zones : [
-      for asset, asset_data in zones_info.assets : {
-        zone_name              = zone
-        asset_name             = asset
-        resource_name          = asset_data.resource_name
-        resource_project       = coalesce(lookup(asset_data, "resource_project_id", null), var.project_id)
-        cron_schedule          = asset_data.discovery_spec_enabled ? asset_data.cron_schedule : null
-        discovery_spec_enabled = asset_data.discovery_spec_enabled
-        resource_spec_type     = asset_data.resource_spec_type
-      }
-    ]
-  ])
+  for zone, zones_info in var.zones : [
+    for asset, asset_data in zones_info.assets : {
+      zone_name              = zone
+      asset_name             = asset
+      resource_name          = asset_data.resource_name
+      resource_project       = lookup(asset_data, "resource_project_id", var.project_id)  # ← reads resource_project_id
+      cron_schedule          = asset_data.discovery_spec_enabled ? asset_data.cron_schedule : null
+      discovery_spec_enabled = asset_data.discovery_spec_enabled
+      resource_spec_type     = asset_data.resource_spec_type
+    }
+  ]
+])
 
   zone_iam = flatten([
     for zone, zone_details in var.zones : [
@@ -109,12 +109,12 @@ resource "google_dataplex_asset" "asset" {
   }
 
   resource_spec {
-    name = format("projects/%s/%s/%s",
-      each.value.resource_project,
-      local.resource_type_mapping[each.value.resource_spec_type],
-      each.value.resource_name
-    )
-    type = each.value.resource_spec_type
-  }
+  name = format("projects/%s/%s/%s",
+    each.value.resource_project,   # ← resolved project per asset
+    local.resource_type_mapping[each.value.resource_spec_type],
+    each.value.resource_name
+  )
+  type = each.value.resource_spec_type
+}
   project = var.project_id
 }
