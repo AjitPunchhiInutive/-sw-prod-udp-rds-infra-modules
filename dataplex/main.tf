@@ -23,7 +23,7 @@ locals {
         zone_name              = zone
         asset_name             = asset
         resource_name          = asset_data.resource_name
-        resource_project       = try(asset_data.resource_project_id, var.project_id)  # ← use try()
+        resource_project       = try(asset_data.resource_project, var.project_id)  # ← use try()
         cron_schedule          = asset_data.discovery_spec_enabled ? asset_data.cron_schedule : null
         discovery_spec_enabled = asset_data.discovery_spec_enabled
         resource_spec_type     = asset_data.resource_spec_type
