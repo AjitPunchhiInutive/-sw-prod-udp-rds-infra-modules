@@ -114,17 +114,16 @@ resource "google_dataplex_asset" "asset" {
   dataplex_zone = google_dataplex_zone.zone[each.value.zone_name].name
 
   discovery_spec {
-  enabled           = each.value.discovery_spec_enabled
-  schedule          = each.value.cron_schedule
-  inherit_from_zone = each.value.inherit_from_zone
+  enabled  = each.value.inherit_from_zone ? false : each.value.discovery_spec_enabled
+  schedule = each.value.cron_schedule
 }
 
   resource_spec {
-  name = format("projects/%s/%s/%s",
-    each.value.resource_project,   # ← resolved project per asset
-    local.resource_type_mapping[each.value.resource_spec_type],
-    each.value.resource_name
-  )
+    name = format("projects/%s/%s/%s",
+      each.value.resource_project,   # ← resolved project per asset
+      local.resource_type_mapping[each.value.resource_spec_type],
+      each.value.resource_name
+    )
   type = each.value.resource_spec_type
 }
   project = var.project_id
