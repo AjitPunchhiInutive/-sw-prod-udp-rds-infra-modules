@@ -22,6 +22,8 @@ locals {
       for asset, asset_data in zones_info.assets : {
         zone_name              = zone
         asset_name             = asset
+        display_name           = try(asset_data.display_name, null)
+        description            = try(asset_data.description, null)
         resource_name          = asset_data.resource_name
         resource_project       = try(asset_data.resource_project, var.project_id)  # ← use try()
         cron_schedule          = asset_data.discovery_spec_enabled ? asset_data.cron_schedule : null
@@ -48,10 +50,12 @@ locals {
 }
 
 resource "google_dataplex_lake" "lake" {
-  name     = "${local.prefix}${var.name}"
-  location = var.region
-  provider = google-beta
-  project  = var.project_id
+  name         = "${local.prefix}${var.name}"
+  display_name = var.display_name
+  description  = var.description
+  location     = var.region
+  provider     = google-beta
+  project      = var.project_id
 }
 
 resource "google_dataplex_lake_iam_binding" "binding" {
@@ -64,13 +68,15 @@ resource "google_dataplex_lake_iam_binding" "binding" {
 }
 
 resource "google_dataplex_zone" "zone" {
-  for_each = var.zones
-  provider = google-beta
-  project  = var.project_id
-  name     = each.key
-  location = var.region
-  lake     = google_dataplex_lake.lake.name
-  type     = each.value.type
+  for_each     = var.zones
+  provider     = google-beta
+  project      = var.project_id
+  name         = each.key
+  display_name = each.value.display_name
+  description  = each.value.description
+  location     = var.region
+  lake         = google_dataplex_lake.lake.name
+  type         = each.value.type
 
   discovery_spec {
     enabled = each.value.discovery
@@ -97,9 +103,11 @@ resource "google_dataplex_asset" "asset" {
   for_each = {
     for tm in local.zone_assets : "${tm.zone_name}-${tm.asset_name}" => tm
   }
-  name     = each.value.asset_name
-  location = var.region
-  provider = google-beta
+  name         = each.value.asset_name
+  display_name = each.value.display_name
+  description  = each.value.description
+  location     = var.region
+  provider     = google-beta
 
   lake          = google_dataplex_lake.lake.name
   dataplex_zone = google_dataplex_zone.zone[each.value.zone_name].name

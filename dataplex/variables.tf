@@ -32,6 +32,18 @@ variable "name" {
   type        = string
 }
 
+variable "display_name" {
+  description = "Optional display name of the Dataplex Lake."
+  type        = string
+  default     = null
+}
+
+variable "description" {
+  description = "Optional description of the Dataplex Lake."
+  type        = string
+  default     = null
+}
+
 variable "prefix" {
   description = "Optional prefix used to generate Dataplex Lake."
   type        = string
@@ -51,11 +63,15 @@ variable "region" {
 variable "zones" {
   description = "Dataplex lake zones, such as `RAW` and `CURATED`."
   type = map(object({
-    type      = string
-    discovery = optional(bool, true)
-    iam       = optional(map(list(string)), null)
+    type         = string
+    display_name = optional(string)
+    description  = optional(string)
+    discovery    = optional(bool, true)
+    iam          = optional(map(list(string)), null)
     assets = map(object({
       resource_name          = string
+      display_name           = optional(string)
+      description            = optional(string)
       resource_project       = optional(string)
       cron_schedule          = optional(string, "15 15 * * *")
       discovery_spec_enabled = optional(bool, true)
