@@ -1,19 +1,3 @@
-/**
- * Copyright 2023 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 locals {
   prefix = var.prefix == null ? "" : "${var.prefix}-"
 
@@ -25,8 +9,18 @@ locals {
         display_name           = try(asset_data.display_name, null)
         description            = try(asset_data.description, null)
         resource_name          = asset_data.resource_name
-        resource_project       = try(asset_data.resource_project, var.project_id)  # ← use try()
-        cron_schedule          = asset_data.discovery_spec_enabled ? asset_data.cron_schedule : null
+        resource_project       = try(asset_data.resource_project, var.project_id)
+        # ── Resolve null/"inherited" to parent zone cron ──
+        cron_schedule = (
+          asset_data.discovery_spec_enabled == false
+          ? null
+          : (
+            try(asset_data.cron_schedule, null) == null ||
+            try(asset_data.cron_schedule, null) == "inherited"
+            ? try(zones_info.cron_schedule, null)  # ← inherit from parent zone
+            : asset_data.cron_schedule             # ← use asset's own value
+          )
+        )
         discovery_spec_enabled = asset_data.discovery_spec_enabled
         resource_spec_type     = asset_data.resource_spec_type
       }
@@ -118,12 +112,12 @@ resource "google_dataplex_asset" "asset" {
   }
 
   resource_spec {
-  name = format("projects/%s/%s/%s",
-    each.value.resource_project,   # ← resolved project per asset
-    local.resource_type_mapping[each.value.resource_spec_type],
-    each.value.resource_name
-  )
-  type = each.value.resource_spec_type
-}
+    name = format("projects/%s/%s/%s",
+      each.value.resource_project,
+      local.resource_type_mapping[each.value.resource_spec_type],
+      each.value.resource_name
+    )
+    type = each.value.resource_spec_type
+  }
   project = var.project_id
 }
