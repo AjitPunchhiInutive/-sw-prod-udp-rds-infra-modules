@@ -76,6 +76,7 @@ variable "zones" {
       cron_schedule          = optional(string, "15 15 * * *")
       discovery_spec_enabled = optional(bool, true)
       resource_spec_type     = optional(string, "STORAGE_BUCKET")
+      inherit_from_zone      = optional(bool, false)
     }))
   }))
   validation {
@@ -84,6 +85,6 @@ variable "zones" {
         for kk, vv in v.assets : contains(["BIGQUERY_DATASET", "STORAGE_BUCKET"], vv.resource_spec_type)
       ]
     ]))
-    error_message = "Asset spect type must be one of 'BIGQUERY_DATASET' or 'STORAGE_BUCKET'."
+    error_message = "Asset spec type must be one of 'BIGQUERY_DATASET' or 'STORAGE_BUCKET'."
   }
 }

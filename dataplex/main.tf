@@ -18,20 +18,21 @@ locals {
   prefix = var.prefix == null ? "" : "${var.prefix}-"
 
   zone_assets = flatten([
-    for zone, zones_info in var.zones : [
-      for asset, asset_data in zones_info.assets : {
-        zone_name              = zone
-        asset_name             = asset
-        display_name           = try(asset_data.display_name, null)
-        description            = try(asset_data.description, null)
-        resource_name          = asset_data.resource_name
-        resource_project       = try(asset_data.resource_project, var.project_id)  # ← use try()
-        cron_schedule          = asset_data.discovery_spec_enabled ? asset_data.cron_schedule : null
-        discovery_spec_enabled = asset_data.discovery_spec_enabled
-        resource_spec_type     = asset_data.resource_spec_type
-      }
-    ]
-  ])
+  for zone, zones_info in var.zones : [
+    for asset, asset_data in zones_info.assets : {
+      zone_name              = zone
+      asset_name             = asset
+      display_name           = try(asset_data.display_name, null)
+      description            = try(asset_data.description, null)
+      resource_name          = asset_data.resource_name
+      resource_project       = try(asset_data.resource_project, var.project_id)
+      cron_schedule          = asset_data.discovery_spec_enabled ? asset_data.cron_schedule : null
+      discovery_spec_enabled = asset_data.discovery_spec_enabled
+      resource_spec_type     = asset_data.resource_spec_type
+      inherit_from_zone      = try(asset_data.inherit_from_zone, false)
+    }
+  ]
+])
 
   zone_iam = flatten([
     for zone, zone_details in var.zones : [
@@ -113,9 +114,10 @@ resource "google_dataplex_asset" "asset" {
   dataplex_zone = google_dataplex_zone.zone[each.value.zone_name].name
 
   discovery_spec {
-    enabled  = each.value.discovery_spec_enabled
-    schedule = each.value.cron_schedule
-  }
+  enabled           = each.value.discovery_spec_enabled
+  schedule          = each.value.cron_schedule
+  inherit_from_zone = each.value.inherit_from_zone
+}
 
   resource_spec {
   name = format("projects/%s/%s/%s",
