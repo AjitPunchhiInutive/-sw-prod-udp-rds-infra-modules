@@ -68,6 +68,7 @@ variable "zones" {
     description  = optional(string)
     discovery    = optional(bool, true)
     iam          = optional(map(list(string)), null)
+    cron_schedule = optional(string)
     assets = map(object({
       resource_name          = string
       display_name           = optional(string)
