@@ -115,7 +115,7 @@ resource "google_dataplex_asset" "asset" {
 
   discovery_spec {
   enabled  = each.value.inherit_from_zone ? false : each.value.discovery_spec_enabled
-  schedule = each.value.cron_schedule
+  schedule = each.value.inherit_from_zone ? null : each.value.cron_schedule
 }
 
   resource_spec {
