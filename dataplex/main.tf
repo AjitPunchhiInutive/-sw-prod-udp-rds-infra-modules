@@ -1,38 +1,31 @@
-/**
- * Copyright 2023 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 locals {
   prefix = var.prefix == null ? "" : "${var.prefix}-"
 
   zone_assets = flatten([
-  for zone, zones_info in var.zones : [
-    for asset, asset_data in zones_info.assets : {
-      zone_name              = zone
-      asset_name             = asset
-      display_name           = try(asset_data.display_name, null)
-      description            = try(asset_data.description, null)
-      resource_name          = asset_data.resource_name
-      resource_project       = try(asset_data.resource_project, var.project_id)
-      cron_schedule          = asset_data.discovery_spec_enabled ? asset_data.cron_schedule : null
-      discovery_spec_enabled = asset_data.discovery_spec_enabled
-      resource_spec_type     = asset_data.resource_spec_type
-      inherit_from_zone      = try(asset_data.inherit_from_zone, false)
-    }
-  ]
-])
+    for zone, zones_info in var.zones : [
+      for asset, asset_data in zones_info.assets : {
+        zone_name              = zone
+        asset_name             = asset
+        display_name           = try(asset_data.display_name, null)
+        description            = try(asset_data.description, null)
+        resource_name          = asset_data.resource_name
+        resource_project       = try(asset_data.resource_project, var.project_id)
+        discovery_spec_enabled = asset_data.discovery_spec_enabled
+        resource_spec_type     = asset_data.resource_spec_type
+        # ── Resolve cron: null/"inherited" → use zone cron ──
+        cron_schedule = (
+          asset_data.discovery_spec_enabled == false
+          ? null
+          : (
+            try(asset_data.cron_schedule, null) == null ||
+            try(asset_data.cron_schedule, null) == "inherited"
+            ? try(zones_info.cron_schedule, null)  # ← inherit from zone
+            : asset_data.cron_schedule             # ← use asset's own value
+          )
+        )
+      }
+    ]
+  ])
 
   zone_iam = flatten([
     for zone, zone_details in var.zones : [
@@ -80,7 +73,14 @@ resource "google_dataplex_zone" "zone" {
   type         = each.value.type
 
   discovery_spec {
-    enabled = each.value.discovery
+    enabled  = each.value.discovery
+    # ── Zone-level schedule for discovery ──
+    dynamic "schedule" {
+      for_each = try(each.value.cron_schedule, null) != null ? [""] : []
+      content {
+        cron = each.value.cron_schedule
+      }
+    }
   }
 
   resource_spec {
@@ -114,17 +114,24 @@ resource "google_dataplex_asset" "asset" {
   dataplex_zone = google_dataplex_zone.zone[each.value.zone_name].name
 
   discovery_spec {
-  enabled  = each.value.inherit_from_zone ? false : each.value.discovery_spec_enabled
-  schedule = each.value.inherit_from_zone ? null : each.value.cron_schedule
-}
+    enabled = each.value.discovery_spec_enabled
+    # ── Asset-level schedule (resolved from zone if null/inherited) ──
+    dynamic "schedule" {
+      for_each = each.value.cron_schedule != null ? [""] : []
+      content {
+        cron = each.value.cron_schedule              # ← uses resolved cron
+      }
+    }
+  }
 
   resource_spec {
     name = format("projects/%s/%s/%s",
-      each.value.resource_project,   # ← resolved project per asset
+      each.value.resource_project,
       local.resource_type_mapping[each.value.resource_spec_type],
       each.value.resource_name
     )
-  type = each.value.resource_spec_type
-}
+    type = each.value.resource_spec_type
+  }
+
   project = var.project_id
 }

@@ -1,19 +1,3 @@
-/**
- * Copyright 2023 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 variable "iam" {
   description = "Dataplex lake IAM bindings in {ROLE => [MEMBERS]} format."
   type        = map(list(string))
@@ -63,20 +47,20 @@ variable "region" {
 variable "zones" {
   description = "Dataplex lake zones, such as `RAW` and `CURATED`."
   type = map(object({
-    type         = string
-    display_name = optional(string)
-    description  = optional(string)
-    discovery    = optional(bool, true)
-    iam          = optional(map(list(string)), null)
+    type          = string
+    display_name  = optional(string)
+    description   = optional(string)
+    discovery     = optional(bool, true)
+    cron_schedule = optional(string)               # ← ADD zone-level cron
+    iam           = optional(map(list(string)), null)
     assets = map(object({
       resource_name          = string
       display_name           = optional(string)
       description            = optional(string)
       resource_project       = optional(string)
-      cron_schedule          = optional(string, "15 15 * * *")
+      cron_schedule          = optional(string)    # ← remove default so null means inherit
       discovery_spec_enabled = optional(bool, true)
       resource_spec_type     = optional(string, "STORAGE_BUCKET")
-      inherit_from_zone      = optional(bool, false)
     }))
   }))
   validation {
@@ -85,6 +69,6 @@ variable "zones" {
         for kk, vv in v.assets : contains(["BIGQUERY_DATASET", "STORAGE_BUCKET"], vv.resource_spec_type)
       ]
     ]))
-    error_message = "Asset spec type must be one of 'BIGQUERY_DATASET' or 'STORAGE_BUCKET'."
+    error_message = "Asset spect type must be one of 'BIGQUERY_DATASET' or 'STORAGE_BUCKET'."
   }
 }
