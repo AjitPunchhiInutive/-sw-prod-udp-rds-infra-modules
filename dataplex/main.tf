@@ -107,13 +107,8 @@ resource "google_dataplex_asset" "asset" {
   dataplex_zone = google_dataplex_zone.zone[each.value.zone_name].name
 
   discovery_spec {
-    enabled = each.value.discovery_spec_enabled
-    dynamic "schedule" {
-      for_each = each.value.cron_schedule != null ? [""] : []
-      content {
-        cron = each.value.cron_schedule    # ← resolved cron (from zone if inherited)
-      }
-    }
+    enabled  = each.value.discovery_spec_enabled
+    schedule = each.value.cron_schedule    # ← direct string attribute, no block needed
   }
 
   resource_spec {
