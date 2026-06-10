@@ -73,14 +73,7 @@ resource "google_dataplex_zone" "zone" {
   type         = each.value.type
 
   discovery_spec {
-    enabled  = each.value.discovery
-    # ── Zone-level schedule for discovery ──
-    dynamic "schedule" {
-      for_each = try(each.value.cron_schedule, null) != null ? [""] : []
-      content {
-        cron = each.value.cron_schedule
-      }
-    }
+    enabled = each.value.discovery   # ← no schedule block here
   }
 
   resource_spec {
@@ -115,11 +108,10 @@ resource "google_dataplex_asset" "asset" {
 
   discovery_spec {
     enabled = each.value.discovery_spec_enabled
-    # ── Asset-level schedule (resolved from zone if null/inherited) ──
     dynamic "schedule" {
       for_each = each.value.cron_schedule != null ? [""] : []
       content {
-        cron = each.value.cron_schedule              # ← uses resolved cron
+        cron = each.value.cron_schedule    # ← resolved cron (from zone if inherited)
       }
     }
   }
